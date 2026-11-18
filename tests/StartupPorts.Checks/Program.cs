@@ -271,7 +271,8 @@ static async Task CheckInstaller(string installer)
         Require(store.Get(id).Entry == entry && !fixture.HasExited,
             "Updating changed the saved task or stopped its target.");
         await ExecuteInstaller(uninstaller, setupFlags);
-        await Eventually(() => store.List().Entries.All(task => task.Entry.Id != id) && !File.Exists(launcher),
+        await Eventually(() => store.List().Entries.All(task => task.Entry.Id != id) &&
+            !File.Exists(launcher) && !File.Exists(uninstaller),
             "Uninstall left a registered task or application binary.");
         Require(!fixture.HasExited, "Uninstall stopped the target.");
         Console.WriteLine("Per-user install, upgrade, and uninstall passed with a running target.");
@@ -324,7 +325,7 @@ static async Task Listen(int port, string ready)
     tcp6.Start();
     File.WriteAllText(ready, Environment.ProcessId.ToString());
     var timeout = Stopwatch.StartNew();
-    while (timeout.Elapsed < TimeSpan.FromSeconds(25) && !File.Exists(ready + ".stop"))
+    while (timeout.Elapsed < TimeSpan.FromMinutes(2) && !File.Exists(ready + ".stop"))
         await Task.Delay(100);
 }
 
