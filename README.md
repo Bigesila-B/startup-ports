@@ -37,4 +37,4 @@ dotnet run --project tests/StartupPorts.Checks -- --scheduler './src/StartupPort
 
 ## 来源与许可证
 
-端口查询、新增端口提示和启动来源的设计参考了 [local-ops-windows](https://github.com/Bigesila-B/local-ops-windows)。StartupPorts 使用 Windows 原生接口实现这些功能。项目采用 [MIT 许可证](LICENSE)。
+端口列表、新增端口提示和启动来源的设计参考了 [local-ops](https://github.com/laogou717/local-ops)。StartupPorts 使用 Windows 原生接口实现这些功能。项目采用 [MIT 许可证](LICENSE)。

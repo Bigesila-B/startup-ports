@@ -37,4 +37,4 @@ dotnet run --project tests/StartupPorts.Checks -- --scheduler './src/StartupPort
 
 ## Credits and license
 
-The port lookup, new-port notifications, and process launch-source features were inspired by [local-ops-windows](https://github.com/Bigesila-B/local-ops-windows). StartupPorts implements these features using native Windows APIs. The project is released under the [MIT License](LICENSE).
+The port list, new-port notifications, and process launch-source features were inspired by [local-ops](https://github.com/laogou717/local-ops). StartupPorts implements these features using native Windows APIs. The project is released under the [MIT License](LICENSE).
