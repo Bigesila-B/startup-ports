@@ -1,6 +1,8 @@
 using System.IO;
 using System.Security.Principal;
 
+using static StartupPorts.UiText;
+
 namespace StartupPorts;
 
 internal enum Protocol { Tcp, Udp }
@@ -12,26 +14,26 @@ internal sealed record StartupEntry(
     public string Kind => Path.GetExtension(Target).ToLowerInvariant();
 
     public string? PathIssue() =>
-        !File.Exists(Target) ? "找不到启动文件" :
-        !Directory.Exists(WorkingDirectory) ? "找不到工作目录" : null;
+        !File.Exists(Target) ? L("MissingStartupFile") :
+        !Directory.Exists(WorkingDirectory) ? L("MissingWorkingDirectory") : null;
 
     public StartupEntry Validate()
     {
         if (Id == Guid.Empty || string.IsNullOrWhiteSpace(Name) || Name.Length > 100)
-            throw new ArgumentException("请输入 1–100 字的名称。");
+            throw new ArgumentException(L("NameValidation"));
         if (!Path.IsPathFullyQualified(Target) || Kind is not (".exe" or ".bat" or ".cmd" or ".ps1"))
-            throw new ArgumentException("请选择 EXE、BAT、CMD 或 PowerShell 脚本的完整路径。");
+            throw new ArgumentException(L("TargetValidation"));
         if (!Path.IsPathFullyQualified(WorkingDirectory))
-            throw new ArgumentException("请输入工作目录的完整路径。");
+            throw new ArgumentException(L("WorkingDirectoryValidation"));
         if (DelaySeconds is < 0 or > 600 || ExpectedPort is < 1 or > 65535 ||
             !Enum.IsDefined(ExpectedProtocol))
-            throw new ArgumentException("延迟为 0–600 秒，端口为 1–65535。");
+            throw new ArgumentException(L("DelayPortValidation"));
         if (Arguments.Length > 6000 || Arguments.Any(c => c is '\0' or '\r' or '\n'))
-            throw new ArgumentException("参数需填写在一行内，最多 6000 个字符。");
+            throw new ArgumentException(L("ArgumentsValidation"));
         if ((Kind is ".cmd" or ".bat") && Target.Length + Arguments.Length > 7800)
-            throw new ArgumentException("批处理路径与参数超过 CMD 的长度限制。");
+            throw new ArgumentException(L("CmdLengthValidation"));
         if (PathIssue() is { } issue)
-            throw new ArgumentException(issue + "。");
+            throw new ArgumentException(issue);
         return this;
     }
 }

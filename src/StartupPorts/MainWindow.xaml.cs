@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -5,7 +6,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Threading;
+
+using static StartupPorts.UiText;
 
 namespace StartupPorts;
 
@@ -15,8 +19,12 @@ public partial class MainWindow : Window
     private readonly SemaphoreSlim _refreshGate = new(1);
     private readonly PortMonitor _monitor = new();
     private readonly PortDiscovery _discovery = new();
+    private readonly ProcessIcons _icons = new();
     private readonly EventWaitHandle _maintenance = LaunchRunner.OpenQuiesceEvent();
-    private IReadOnlyList<PortRow> _ports = [];
+    private readonly ObservableCollection<PortService> _ports = [];
+    private readonly Dictionary<DataGridColumn, string> _columnHeaders;
+    private ICollectionView? _portView;
+    private bool _readingWindowsStartup;
     private bool _working;
     private bool _closed;
     private int _discoveryGeneration;
@@ -24,7 +32,19 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        _columnHeaders = new[] { StartupGrid, WindowsStartupGrid, PortGrid }
+            .SelectMany(grid => grid.Columns).ToDictionary(column => column, column => (string)column.Header);
+        UpdateColumnHeaders();
+        Language = XmlLanguage.GetLanguage(LanguageCode);
+        LanguageSelector.SelectedValue = LanguageCode;
+        LanguageSelector.SelectionChanged += LanguageChanged;
         VersionText.Text = $"StartupPorts  {typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}";
+        PortGrid.ItemsSource = _ports;
+        _portView = CollectionViewSource.GetDefaultView(_ports);
+        _portView.Filter = item => item is PortService service && MatchesPortFilter(service);
+        _portView.SortDescriptions.Add(new SortDescription(nameof(PortService.Port), ListSortDirection.Ascending));
+        if (_portView is ICollectionViewLiveShaping { CanChangeLiveSorting: true } liveView)
+            liveView.IsLiveSorting = true;
         StartupNav.IsChecked = true;
         Loaded += async (_, _) =>
         {
@@ -54,7 +74,7 @@ public partial class MainWindow : Window
 
     private async Task RefreshAsync(bool wait)
     {
-        if (_closed || WindowState == WindowState.Minimized)
+        if (_closed || WindowState == WindowState.Minimized || WindowsStartupNav.IsChecked == true)
             return;
         if (wait)
             await _refreshGate.WaitAsync();
@@ -62,28 +82,28 @@ public partial class MainWindow : Window
             return;
         try
         {
-            if (_closed)
+            if (_closed || WindowsStartupNav.IsChecked == true)
                 return;
             var generation = _discoveryGeneration;
+            var language = LanguageCode;
             var state = await Task.Run(Capture);
-            if (_closed || WindowState == WindowState.Minimized)
+            if (_closed || WindowState == WindowState.Minimized || WindowsStartupNav.IsChecked == true || language != LanguageCode)
                 return;
             if (state.Tasks != null)
             {
                 var id = (StartupGrid.SelectedItem as StartupRow)?.Entry.Id;
                 Replace(StartupGrid, state.Tasks, state.Tasks.FirstOrDefault(task => task.Entry.Id == id));
                 StartupEmpty.Visibility = state.Tasks.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-                TaskCount.Text = $"{state.Tasks.Count} 项 · {state.Tasks.Count(task => task.Entry.Enabled)} 项已启用";
+                TaskCount.Text = L("TaskCount", state.Tasks.Count, state.Tasks.Count(task => task.Entry.Enabled));
             }
             else
-                TaskCount.Text = "任务暂不可用";
+                TaskCount.Text = L("TasksUnavailable");
 
-            _ports = state.Ports.Rows;
-            FilterPorts();
+            UpdatePorts(state.Services);
             if (PortsNav.IsChecked == true && generation == _discoveryGeneration)
                 UpdateDiscovery(state.Ports);
             StatusText.Text = state.Issues.Count == 0
-                ? $"更新于 {DateTime.Now:HH:mm:ss}  ·  每 2 秒刷新"
+                ? L("RefreshedEveryTwoSeconds", DateTime.Now)
                 : string.Join("  ·  ", state.Issues);
             UpdateControls();
         }
@@ -92,13 +112,13 @@ public partial class MainWindow : Window
             if (!_closed)
             {
                 ResetDiscovery();
-                StatusText.Text = $"读取本机状态失败：{ex.Message}";
+                StatusText.Text = L("LocalReadError", ex.Message);
             }
         }
         finally { _refreshGate.Release(); }
     }
 
-    private (IReadOnlyList<StartupRow>? Tasks, PortSnapshot Ports, IReadOnlyList<string> Issues) Capture()
+    private (IReadOnlyList<StartupRow>? Tasks, PortSnapshot Ports, IReadOnlyList<PortService> Services, IReadOnlyList<string> Issues) Capture()
     {
         TaskList? tasks = null;
         var issues = new List<string>();
@@ -109,7 +129,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex) when (IsExpected(ex))
         {
-            issues.Add($"自启任务暂不可用：{ex.Message}");
+            issues.Add(L("TasksReadError", ex.Message));
         }
 
         var runs = new Dictionary<Guid, RunInfo>();
@@ -123,7 +143,8 @@ public partial class MainWindow : Window
             runs.TryGetValue(task.Entry.Id, out var run);
             return new StartupRow(task, run, ports, ReadTracking(run));
         }).ToArray();
-        return (rows, ports, issues);
+        var names = tasks?.Entries.ToDictionary(task => task.Entry.Id, task => task.Entry.Name) ?? [];
+        return (rows, ports, PortService.Group(ports, names, _icons), issues);
     }
 
     private static RunTracking ReadTracking(RunInfo? run)
@@ -142,20 +163,104 @@ public partial class MainWindow : Window
             ? RunTracking.Root : RunTracking.None;
     }
 
-    private void Navigate(object sender, RoutedEventArgs e)
+    private async void Navigate(object sender, RoutedEventArgs e)
     {
         if (StartupPanel == null)
             return;
         var showPorts = ReferenceEquals(sender, PortsNav);
-        StartupPanel.Visibility = showPorts ? Visibility.Collapsed : Visibility.Visible;
+        var showWindows = ReferenceEquals(sender, WindowsStartupNav);
+        StartupPanel.Visibility = showPorts || showWindows ? Visibility.Collapsed : Visibility.Visible;
+        WindowsStartupPanel.Visibility = showWindows ? Visibility.Visible : Visibility.Collapsed;
         PortsPanel.Visibility = showPorts ? Visibility.Visible : Visibility.Collapsed;
-        AddButton.Visibility = showPorts ? Visibility.Collapsed : Visibility.Visible;
-        PageTitle.Text = showPorts ? "端口监控" : "自启管理";
-        PageDescription.Text = showPorts
-            ? "检查本机监听端口、绑定地址及其占用进程。"
-            : "选择当前 Windows 账户登录后要运行的程序和脚本。";
+        AddButton.Visibility = showPorts || showWindows ? Visibility.Collapsed : Visibility.Visible;
+        UpdatePageLabels();
         ResetDiscovery();
         UpdateControls();
+        if (showWindows)
+            await ReadWindowsStartupAsync();
+        else if (IsLoaded)
+            await RefreshAsync(wait: true);
+    }
+
+    private void UpdatePageLabels()
+    {
+        var showPorts = PortsNav.IsChecked == true;
+        var showWindows = WindowsStartupNav.IsChecked == true;
+        PageTitle.Text = L(showPorts ? "PortMonitor" : showWindows ? "WindowsStartupItems" : "StartupManagement");
+        PageDescription.Text = L(showPorts ? "PortMonitorDescription" : showWindows
+            ? "WindowsStartupDescription" : "StartupPageDescription");
+    }
+
+    private async void LanguageChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_closed || LanguageSelector.SelectedValue is not string code || code == LanguageCode)
+            return;
+
+        ApplyLanguage(code);
+        try { SavePreference(); }
+        catch (Exception ex) when (IsExpected(ex))
+        {
+            ShowError(new InvalidOperationException(L("LanguageSaveError", ex.Message)));
+        }
+        if (WindowsStartupNav.IsChecked == true)
+            await ReadWindowsStartupAsync();
+        else
+            await RefreshAsync(wait: true);
+    }
+
+    internal void ApplyLanguage(string code)
+    {
+        SetLanguage(code);
+        ApplyResources(Application.Current);
+        Language = XmlLanguage.GetLanguage(code);
+        LanguageSelector.SelectedValue = code;
+        UpdateColumnHeaders();
+        UpdatePageLabels();
+        ResetDiscovery();
+        foreach (var row in _ports)
+            row.NotifyDisplayChanged();
+        _portView?.Refresh();
+        ShowPortCount();
+        UpdateControls();
+    }
+
+    private void UpdateColumnHeaders()
+    {
+        foreach (var (column, resource) in _columnHeaders)
+            column.Header = L(resource);
+    }
+
+    private async Task ReadWindowsStartupAsync()
+    {
+        if (_readingWindowsStartup || _closed)
+            return;
+        _readingWindowsStartup = true;
+        StatusText.Text = L("ReadingWindowsStartup");
+        UpdateControls();
+        try
+        {
+            var snapshot = await Task.Run(WindowsStartup.Read);
+            if (_closed || WindowsStartupNav.IsChecked != true)
+                return;
+            var id = (WindowsStartupGrid.SelectedItem as WindowsStartupItem)?.Id;
+            Replace(WindowsStartupGrid, snapshot.Items, snapshot.Items.FirstOrDefault(item => item.Id == id));
+            WindowsStartupCount.Text = L("SystemCount", snapshot.Items.Count);
+            WindowsStartupEmpty.Visibility = snapshot.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            StatusText.Text = snapshot.Issues.Count == 0
+                ? L("RefreshedAt", DateTime.Now)
+                : string.Join("  ·  ", snapshot.Issues);
+        }
+        catch (Exception ex) when (IsExpected(ex))
+        {
+            if (!_closed && WindowsStartupNav.IsChecked == true)
+                StatusText.Text = L("WindowsStartupReadError", ex.Message);
+        }
+        finally
+        {
+            _readingWindowsStartup = false;
+            if (!_closed)
+                UpdateControls();
+        }
     }
 
     private void ResetDiscovery()
@@ -178,25 +283,42 @@ public partial class MainWindow : Window
         if (discovered.Count == 0)
             return;
         var names = discovered.Select(row => $"{row.Protocol} {row.Port}（{row.Process}）").Distinct().Take(5);
-        NoticeText.Text = $"发现 {discovered.Count} 个新端点  ·  {string.Join("、", names)}";
+        NoticeText.Text = L("DiscoveryCount", discovered.Count, string.Join(L("ListSeparator"), names));
     }
 
-    private void FilterPorts()
+    private bool MatchesPortFilter(PortService service) =>
+        service.Matches(SearchBox.Text.Trim(), ProtocolFilter.SelectedIndex, OwnerFilter.SelectedIndex);
+
+    private void UpdatePorts(IReadOnlyList<PortService> next)
     {
-        if (PortGrid == null)
-            return;
-        var query = SearchBox.Text.Trim();
-        var filter = ProtocolFilter.SelectedIndex;
-        var selected = PortGrid.SelectedItem as PortRow;
-        var filtered = _ports.Where(row => (filter <= 0 || (int)row.Endpoint.Protocol == filter - 1) &&
-            (query.Length == 0 || row.Process.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-             row.Port.ToString().Contains(query, StringComparison.Ordinal) || row.Pid.ToString().Contains(query, StringComparison.Ordinal) ||
-             row.Address.Contains(query, StringComparison.OrdinalIgnoreCase))).ToArray();
-        Replace(PortGrid, filtered, selected is null ? null :
-            filtered.FirstOrDefault(row => row.Endpoint == selected.Endpoint && row.Created == selected.Created));
-        PortCount.Text = query.Length == 0 && filter <= 0
-            ? $"{_ports.Count} 个端点" : $"{filtered.Length} / {_ports.Count} 个端点";
-        PortsEmpty.Visibility = filtered.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+        var nextKeys = next.Select(service => service.Key).ToHashSet();
+        for (var index = _ports.Count - 1; index >= 0; index--)
+            if (!nextKeys.Contains(_ports[index].Key))
+                _ports.RemoveAt(index);
+        var existing = _ports.ToDictionary(service => service.Key);
+        var filterChanged = false;
+        foreach (var service in next)
+        {
+            if (existing.TryGetValue(service.Key, out var row))
+            {
+                var wasVisible = MatchesPortFilter(row);
+                row.Update(service);
+                filterChanged |= wasVisible != MatchesPortFilter(row);
+            }
+            else
+                _ports.Add(service);
+        }
+        if (filterChanged)
+            _portView!.Refresh();
+        ShowPortCount();
+    }
+
+    private void ShowPortCount()
+    {
+        var visible = PortGrid.Items.Count;
+        PortCount.Text = visible == _ports.Count
+            ? L("PortCount", visible) : L("FilteredPortCount", visible, _ports.Count);
+        PortsEmpty.Visibility = visible == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private static void Replace<T>(DataGrid grid, IEnumerable<T> rows, T? selected) where T : class
@@ -212,22 +334,27 @@ public partial class MainWindow : Window
 
     private void UpdateControls()
     {
-        if (TaskDetails == null || PortDetails == null)
+        if (TaskDetails == null || PortDetails == null || WindowsStartupDetails == null)
             return;
         var startup = StartupGrid.SelectedItem as StartupRow;
-        var port = PortGrid.SelectedItem as PortRow;
+        var service = PortGrid.SelectedItem as PortService;
+        var port = service?.Primary;
+        var windowsItem = WindowsStartupGrid.SelectedItem as WindowsStartupItem;
         EditButton.IsEnabled = DeleteButton.IsEnabled = EnableButton.IsEnabled = !_working && startup != null;
         RunButton.IsEnabled = !_working && startup != null && startup.Tracking == RunTracking.None && startup.Task.State != 4 &&
             startup.Entry.PathIssue() == null;
-        EnableButton.Content = startup == null ? "启用 / 停用" : startup.Entry.Enabled ? "停用" : "启用";
-        AddButton.IsEnabled = RefreshButton.IsEnabled = !_working;
+        EnableButton.Content = startup == null ? L("EnableDisable") : startup.Entry.Enabled ? L("Disable") : L("Enable");
+        AddButton.IsEnabled = !_working;
+        RefreshButton.IsEnabled = WindowsStartupNav.IsChecked == true ? !_readingWindowsStartup : !_working;
+        LanguageSelector.IsEnabled = !_working && !_readingWindowsStartup;
         CopyButton.IsEnabled = port != null;
-        OpenButton.IsEnabled = port?.Endpoint.BrowserAddress != null;
+        OpenButton.IsEnabled = service?.BrowserAddress != null;
         FromPortButton.IsEnabled = !_working && port?.CanAdd == true;
         EndButton.IsEnabled = !_working && port?.CanEnd == true;
-        TaskDetails.Text = startup?.Details ?? "选择一项查看启动文件和实际监听端口。";
-        PortDetails.Text = port is null ? "选择端点查看进程路径。" :
-            $"{port.Endpoint.Display}  ·  {port.Path ?? port.Process}";
+        TaskDetails.Text = startup?.Details ?? L("ChooseStartupTask");
+        PortDetails.Text = service?.Details ?? L("ChoosePort");
+        CopyStartupButton.IsEnabled = windowsItem != null;
+        WindowsStartupDetails.Text = windowsItem?.Command ?? L("ChooseWindowsStartupItem");
     }
 
     private async Task Change(Action change)
@@ -264,9 +391,22 @@ public partial class MainWindow : Window
     }
 
     private async void AddClicked(object sender, RoutedEventArgs e) => await Edit();
-    private async void RefreshClicked(object sender, RoutedEventArgs e) => await RefreshAsync(wait: true);
+    private async void RefreshClicked(object sender, RoutedEventArgs e)
+    {
+        if (WindowsStartupNav.IsChecked == true)
+            await ReadWindowsStartupAsync();
+        else
+            await RefreshAsync(wait: true);
+    }
     private void DismissNoticeClicked(object sender, RoutedEventArgs e) => ClearNotice();
-    private void SearchChanged(object sender, RoutedEventArgs e) => FilterPorts();
+    private void SearchChanged(object sender, RoutedEventArgs e)
+    {
+        if (_portView == null)
+            return;
+        _portView.Refresh();
+        ShowPortCount();
+        UpdateControls();
+    }
     private void SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateControls();
 
     private async void EditClicked(object sender, RoutedEventArgs e)
@@ -295,36 +435,52 @@ public partial class MainWindow : Window
 
     private async void DeleteClicked(object sender, RoutedEventArgs e)
     {
-        if (StartupGrid.SelectedItem is StartupRow row && Confirm($"删除「{row.Name}」的登录自启设置？"))
+        if (StartupGrid.SelectedItem is StartupRow row && Confirm(L("DeletePrompt", row.Name)))
             await Change(() => new TaskStore().Delete(row.Entry.Id));
     }
 
     private async void FromPortClicked(object sender, RoutedEventArgs e)
     {
-        if (PortGrid.SelectedItem is PortRow { CanAdd: true } row)
+        if (PortGrid.SelectedItem is PortService { Primary: { CanAdd: true } row })
             await Edit(port: row);
     }
 
     private async void EndClicked(object sender, RoutedEventArgs e)
     {
-        if (PortGrid.SelectedItem is PortRow { CanEnd: true } row &&
-            Confirm($"结束 {row.Process}（PID {row.Pid}）？该进程内未保存的数据可能丢失。"))
+        if (PortGrid.SelectedItem is PortService { Primary: { CanEnd: true } row } &&
+            Confirm(L("EndProcessPrompt", row.Process, row.Pid)))
             await Change(() => PortMonitor.End(row));
     }
 
     private void CopyClicked(object sender, RoutedEventArgs e)
     {
-        if (PortGrid.SelectedItem is not PortRow row)
-            return;
-        try { Clipboard.SetText(row.Endpoint.Display); }
+        if (PortGrid.SelectedItem is PortService service)
+            CopyText(service.AddressesToCopy);
+    }
+
+    private void CopyStartupClicked(object sender, RoutedEventArgs e)
+    {
+        if (WindowsStartupGrid.SelectedItem is WindowsStartupItem item)
+            CopyText(item.Command);
+    }
+
+    private void CopyText(string value)
+    {
+        try { Clipboard.SetText(value); }
         catch (ExternalException ex) { ShowError(ex); }
     }
 
     private void OpenClicked(object sender, RoutedEventArgs e)
     {
-        if (PortGrid.SelectedItem is not PortRow row || row.Endpoint.BrowserAddress is not { } uri)
-            return;
-        try { Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true })?.Dispose(); }
+        if (PortGrid.SelectedItem is PortService { BrowserAddress: { } uri })
+            OpenAddress(uri.AbsoluteUri);
+    }
+
+    private void OpenWindowsStartupSettings(object sender, RoutedEventArgs e) => OpenAddress("ms-settings:startupapps");
+
+    private void OpenAddress(string address)
+    {
+        try { Process.Start(new ProcessStartInfo(address) { UseShellExecute = true })?.Dispose(); }
         catch (Win32Exception ex) { ShowError(ex); }
     }
 

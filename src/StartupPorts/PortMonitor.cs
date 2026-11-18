@@ -7,12 +7,15 @@ using System.Security.Principal;
 using Microsoft.Win32.SafeHandles;
 using static StartupPorts.NativeProcess;
 
+using static StartupPorts.UiText;
+
 namespace StartupPorts;
 
 internal sealed record PortRow(BoundEndpoint Endpoint, string Process, string? Path, long? Created,
     double? Cpu, long? Memory, string? Origin, bool CanEnd, bool CanAdd,
     IReadOnlyList<Guid> ManagedBy, bool IdentityUncertain)
 {
+    public bool IsCurrentUser { get; init; }
     public string Protocol => Endpoint.Protocol.ToString().ToUpperInvariant();
     public string Address => Endpoint.Address.ToString();
     public int Port => Endpoint.Port;
@@ -39,7 +42,7 @@ internal sealed class PortMonitor
         ["claude.exe"] = "Claude", ["Code.exe"] = "VS Code", ["Code - Insiders.exe"] = "VS Code Insiders",
         ["Cursor.exe"] = "Cursor", ["WindowsTerminal.exe"] = "Windows Terminal",
         ["devenv.exe"] = "Visual Studio", ["idea64.exe"] = "IntelliJ IDEA",
-        ["pycharm64.exe"] = "PyCharm", ["explorer.exe"] = "Windows 资源管理器",
+        ["pycharm64.exe"] = "PyCharm",
     };
 
     public PortSnapshot Capture(IReadOnlyDictionary<Guid, RunInfo> runs)
@@ -81,7 +84,7 @@ internal sealed class PortMonitor
     public static void End(PortRow row)
     {
         if (!row.CanEnd || row.Created is not { } expectedCreation)
-            throw new InvalidOperationException("无法核实这一进程的身份。");
+            throw new InvalidOperationException(L("CannotVerifyProcess"));
         using var process = OpenProcess(QueryAccess | TerminateAccess | SynchronizeAccess, false, row.Pid);
         if (process.IsInvalid)
             throw Error();
@@ -89,11 +92,11 @@ internal sealed class PortMonitor
             !SafeToEnd(process, row.Pid, ImagePath(process)) ||
             WaitForSingleObject(process, 0) != WaitTimeout ||
             !NativePorts.Read(row.Endpoint.Protocol, row.Endpoint.Address.AddressFamily).Contains(row.Endpoint))
-            throw new InvalidOperationException("进程或端口占用已变化，请刷新后重新确认。");
+            throw new InvalidOperationException(L("ProcessChanged"));
         if (!TerminateProcess(process, 1))
             throw Error();
         if (WaitForSingleObject(process, 2000) != WaitSignaled)
-            throw new InvalidOperationException("Windows 正在结束该进程，请稍后刷新。");
+            throw new InvalidOperationException(L("ProcessEnding"));
     }
 
     private PortRow Describe(int pid, long started, Dictionary<int, ProcessEntry> entries,
@@ -103,10 +106,10 @@ internal sealed class PortMonitor
         entries.TryGetValue(pid, out var entry);
         if (process.IsInvalid || !GetProcessTimes(process, out var created, out _, out var kernel, out var user) ||
             created >= started || WaitForSingleObject(process, 0) != WaitTimeout)
-            return new(null!, entry.Executable ?? "进程信息不可用", null, null, null, null, null, false, false, [], true);
+            return new(null!, entry.Executable ?? L("ProcessUnavailable"), null, null, null, null, null, false, false, [], true);
 
         var path = ImagePath(process);
-        var name = Path.GetFileName(path) ?? entry.Executable ?? "进程信息不可用";
+        var name = Path.GetFileName(path) ?? entry.Executable ?? L("ProcessUnavailable");
         var managed = new List<Guid>();
         foreach (var (id, run) in runs)
         {
@@ -130,9 +133,9 @@ internal sealed class PortMonitor
         var own = IsOwned(process);
         var endable = own && !Self(pid, path) && IsProcessCritical(process, out var critical) && !critical;
         var origin = managed.Count > 0 ? "StartupPorts" : Origin(entries, pid, created);
-        return new(null!, name, path, created, cpu, memory, origin, endable,
+        return new PortRow(null!, name, path, created, cpu, memory, origin, endable,
             own && !Self(pid, path) && Path.GetExtension(path)?.Equals(".exe", StringComparison.OrdinalIgnoreCase) == true,
-            managed, false);
+            managed, false) { IsCurrentUser = own };
     }
 
     private static string? Origin(Dictionary<int, ProcessEntry> entries, int pid, long latest)
@@ -147,7 +150,12 @@ internal sealed class PortMonitor
                 break;
             latest = created;
             var path = ImagePath(parent);
-            if (path != null && KnownOrigins.TryGetValue(Path.GetFileName(path), out var origin))
+            if (path == null)
+                continue;
+            var executable = Path.GetFileName(path);
+            if (executable.Equals("explorer.exe", StringComparison.OrdinalIgnoreCase))
+                return L("WindowsExplorer");
+            if (KnownOrigins.TryGetValue(executable, out var origin))
                 return origin;
         }
         return null;

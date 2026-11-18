@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="GenericProgramIcon" xml:space="preserve"><value>通用程序图标</value></data>
+  <data name="StartupManagement" xml:space="preserve"><value>自启管理</value></data>
+  <data name="WindowsStartupItems" xml:space="preserve"><value>Windows 启动项</value></data>
+  <data name="PortMonitor" xml:space="preserve"><value>端口监控</value></data>
+  <data name="Refresh" xml:space="preserve"><value>刷新</value></data>
+  <data name="AddButton" xml:space="preserve"><value>＋ 添加自启项</value></data>
+  <data name="AddEntry" xml:space="preserve"><value>添加自启项</value></data>
+  <data name="EditEntry" xml:space="preserve"><value>编辑自启项</value></data>
+  <data name="StartupEntry" xml:space="preserve"><value>自启项</value></data>
+  <data name="StartupPageDescription" xml:space="preserve"><value>管理你在 StartupPorts 中添加的登录自启任务。</value></data>
+  <data name="StartupInitialDescription" xml:space="preserve"><value>选择当前 Windows 账户登录后要运行的程序和脚本。</value></data>
+  <data name="WindowsStartupDescription" xml:space="preserve"><value>查看注册表、启动文件夹与任务计划程序中的登录启动项。</value></data>
+  <data name="PortMonitorDescription" xml:space="preserve"><value>查看本机端口及其占用程序。</value></data>
+  <data name="Close" xml:space="preserve"><value>关闭</value></data>
+  <data name="ReadingTasks" xml:space="preserve"><value>正在读取任务…</value></data>
+  <data name="RunNow" xml:space="preserve"><value>立即运行</value></data>
+  <data name="EnableDisable" xml:space="preserve"><value>启用 / 停用</value></data>
+  <data name="Enable" xml:space="preserve"><value>启用</value></data>
+  <data name="Disable" xml:space="preserve"><value>停用</value></data>
+  <data name="Edit" xml:space="preserve"><value>编辑</value></data>
+  <data name="Delete" xml:space="preserve"><value>删除</value></data>
+  <data name="StartupTasks" xml:space="preserve"><value>自启任务</value></data>
+  <data name="Name" xml:space="preserve"><value>名称</value></data>
+  <data name="StartAtSignIn" xml:space="preserve"><value>登录自启</value></data>
+  <data name="Delay" xml:space="preserve"><value>延迟</value></data>
+  <data name="ExpectedPort" xml:space="preserve"><value>预期端口</value></data>
+  <data name="LastLaunch" xml:space="preserve"><value>最近启动</value></data>
+  <data name="NoStartupTasks" xml:space="preserve"><value>还没有自启任务</value></data>
+  <data name="StartupEmptyHint" xml:space="preserve"><value>添加程序或脚本，或在「Windows 启动项」查看系统已登记的项目。</value></data>
+  <data name="OpenWindowsStartupSettings" xml:space="preserve"><value>打开 Windows 启动设置</value></data>
+  <data name="ReadingStartupItems" xml:space="preserve"><value>正在读取启动项…</value></data>
+  <data name="RegisteredWindowsStartup" xml:space="preserve"><value>已登记的 Windows 启动项</value></data>
+  <data name="State" xml:space="preserve"><value>状态</value></data>
+  <data name="Source" xml:space="preserve"><value>来源</value></data>
+  <data name="Scope" xml:space="preserve"><value>范围</value></data>
+  <data name="CommandOrPath" xml:space="preserve"><value>命令或路径</value></data>
+  <data name="NoWindowsStartupItems" xml:space="preserve"><value>没有可显示的 Windows 启动项</value></data>
+  <data name="CopyCommandOrPath" xml:space="preserve"><value>复制命令或路径</value></data>
+  <data name="FilterProtocol" xml:space="preserve"><value>筛选协议</value></data>
+  <data name="AllProtocols" xml:space="preserve"><value>所有协议</value></data>
+  <data name="FilterOwner" xml:space="preserve"><value>筛选进程归属</value></data>
+  <data name="AllProcesses" xml:space="preserve"><value>所有进程</value></data>
+  <data name="CurrentUser" xml:space="preserve"><value>当前用户</value></data>
+  <data name="OtherOrUnknown" xml:space="preserve"><value>其他或未知</value></data>
+  <data name="SearchPorts" xml:space="preserve"><value>搜索端口、进程名或 PID</value></data>
+  <data name="LocalPorts" xml:space="preserve"><value>本机端口</value></data>
+  <data name="Process" xml:space="preserve"><value>进程</value></data>
+  <data name="Port" xml:space="preserve"><value>端口</value></data>
+  <data name="Protocol" xml:space="preserve"><value>协议</value></data>
+  <data name="BindAddress" xml:space="preserve"><value>绑定地址</value></data>
+  <data name="Memory" xml:space="preserve"><value>内存</value></data>
+  <data name="Cpu" xml:space="preserve"><value>CPU</value></data>
+  <data name="NoMatchingPorts" xml:space="preserve"><value>没有匹配的端口</value></data>
+  <data name="CopyAddress" xml:space="preserve"><value>复制地址</value></data>
+  <data name="OpenInBrowser" xml:space="preserve"><value>浏览器打开</value></data>
+  <data name="AddFromPort" xml:space="preserve"><value>添加为自启项</value></data>
+  <data name="EndProcess" xml:space="preserve"><value>结束进程</value></data>
+  <data name="ReadingLocalState" xml:space="preserve"><value>正在读取本机状态…</value></data>
+  <data name="ImportHint" xml:space="preserve"><value>请检查启动文件。若进程由脚本启动，可以在此选择原始脚本并填写参数。</value></data>
+  <data name="StartupFile" xml:space="preserve"><value>启动文件</value></data>
+  <data name="Browse" xml:space="preserve"><value>浏览…</value></data>
+  <data name="OptionalArguments" xml:space="preserve"><value>参数（可选）</value></data>
+  <data name="Arguments" xml:space="preserve"><value>参数</value></data>
+  <data name="ArgumentsHelp" xml:space="preserve"><value>按该程序的命令行语法填写；带空格的参数可用双引号括起。</value></data>
+  <data name="WorkingDirectoryHint" xml:space="preserve"><value>工作目录（留空时使用启动文件所在目录）</value></data>
+  <data name="WorkingDirectory" xml:space="preserve"><value>工作目录</value></data>
+  <data name="DelayInSeconds" xml:space="preserve"><value>启动延迟（秒）</value></data>
+  <data name="StartupDelay" xml:space="preserve"><value>启动延迟</value></data>
+  <data name="OptionalExpectedPort" xml:space="preserve"><value>预期端口（可选）</value></data>
+  <data name="PortProtocol" xml:space="preserve"><value>端口协议</value></data>
+  <data name="StartAtCurrentUserSignIn" xml:space="preserve"><value>在当前账户登录时启动</value></data>
+  <data name="Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Save" xml:space="preserve"><value>保存</value></data>
+  <data name="UiLanguage" xml:space="preserve"><value>界面语言</value></data>
+  <data name="ExecutableFilter" xml:space="preserve"><value>程序与脚本 (*.exe;*.bat;*.cmd;*.ps1)|*.exe;*.bat;*.cmd;*.ps1</value></data>
+  <data name="DelayIntegerError" xml:space="preserve"><value>请输入整数秒的启动延迟。</value></data>
+  <data name="PortIntegerError" xml:space="preserve"><value>请输入整数端口。</value></data>
+  <data name="TaskCount" xml:space="preserve"><value>{0} 项 · {1} 项已启用</value></data>
+  <data name="TasksUnavailable" xml:space="preserve"><value>任务暂不可用</value></data>
+  <data name="RefreshedEveryTwoSeconds" xml:space="preserve"><value>更新于 {0:HH:mm:ss} · 每 2 秒刷新</value></data>
+  <data name="LocalReadError" xml:space="preserve"><value>读取本机状态失败：{0}</value></data>
+  <data name="TasksReadError" xml:space="preserve"><value>自启任务暂不可用：{0}</value></data>
+  <data name="ReadingWindowsStartup" xml:space="preserve"><value>正在读取 Windows 启动项…</value></data>
+  <data name="SystemCount" xml:space="preserve"><value>{0} 项 · 只读</value></data>
+  <data name="RefreshedAt" xml:space="preserve"><value>更新于 {0:HH:mm:ss}</value></data>
+  <data name="WindowsStartupReadError" xml:space="preserve"><value>读取 Windows 启动项失败：{0}</value></data>
+  <data name="DiscoveryCount" xml:space="preserve"><value>发现 {0} 个新监听项 · {1}</value></data>
+  <data name="PortCount" xml:space="preserve"><value>{0} 个监听项</value></data>
+  <data name="FilteredPortCount" xml:space="preserve"><value>{0} / {1} 个监听项</value></data>
+  <data name="ChooseStartupTask" xml:space="preserve"><value>选择一项查看启动文件和实际监听端口。</value></data>
+  <data name="ChoosePort" xml:space="preserve"><value>选择一行查看所有绑定地址和程序路径。</value></data>
+  <data name="ChooseWindowsStartupItem" xml:space="preserve"><value>选择一项查看启动命令或路径。</value></data>
+  <data name="DeletePrompt" xml:space="preserve"><value>删除「{0}」的登录自启设置？</value></data>
+  <data name="EndProcessPrompt" xml:space="preserve"><value>结束 {0}（PID {1}）？该进程内未保存的数据可能丢失。</value></data>
+  <data name="LanguageSaveError" xml:space="preserve"><value>无法保存界面语言。{0}</value></data>
+  <data name="CurrentUserRegistry" xml:space="preserve"><value>当前用户注册表</value></data>
+  <data name="SystemRegistry" xml:space="preserve"><value>系统注册表</value></data>
+  <data name="SystemRegistry32" xml:space="preserve"><value>32 位系统注册表</value></data>
+  <data name="CurrentUserStartupFolder" xml:space="preserve"><value>当前用户启动文件夹</value></data>
+  <data name="CommonStartupFolder" xml:space="preserve"><value>公共启动文件夹</value></data>
+  <data name="ScheduledLogonTasks" xml:space="preserve"><value>登录计划任务</value></data>
+  <data name="AllUsers" xml:space="preserve"><value>所有用户</value></data>
+  <data name="RunOnce" xml:space="preserve"><value>单次启动</value></data>
+  <data name="DefaultStartupItem" xml:space="preserve"><value>默认项</value></data>
+  <data name="RegistrySource32" xml:space="preserve"><value>注册表 {0}（32 位）</value></data>
+  <data name="RegistrySource" xml:space="preserve"><value>注册表 {0}</value></data>
+  <data name="StartupFolder" xml:space="preserve"><value>启动文件夹</value></data>
+  <data name="Registered" xml:space="preserve"><value>已登记</value></data>
+  <data name="Enabled" xml:space="preserve"><value>已启用</value></data>
+  <data name="Disabled" xml:space="preserve"><value>已停用</value></data>
+  <data name="UnknownState" xml:space="preserve"><value>状态未知</value></data>
+  <data name="ScheduledLogon" xml:space="preserve"><value>任务计划（登录）</value></data>
+  <data name="CannotVerifyProcess" xml:space="preserve"><value>无法核实这一进程的身份。</value></data>
+  <data name="ProcessChanged" xml:space="preserve"><value>进程或端口占用已变化，请刷新后重新确认。</value></data>
+  <data name="ProcessEnding" xml:space="preserve"><value>Windows 正在结束该进程，请稍后刷新。</value></data>
+  <data name="ProcessUnavailable" xml:space="preserve"><value>进程信息不可用</value></data>
+  <data name="WindowsSystemProcess" xml:space="preserve"><value>Windows 系统进程</value></data>
+  <data name="WindowsExplorer" xml:space="preserve"><value>Windows 资源管理器</value></data>
+  <data name="UnknownOrigin" xml:space="preserve"><value>来源未知</value></data>
+  <data name="MissingStartupFile" xml:space="preserve"><value>找不到启动文件</value></data>
+  <data name="MissingWorkingDirectory" xml:space="preserve"><value>找不到工作目录</value></data>
+  <data name="NameValidation" xml:space="preserve"><value>请输入 1–100 字的名称。</value></data>
+  <data name="TargetValidation" xml:space="preserve"><value>请选择 EXE、BAT、CMD 或 PowerShell 脚本的完整路径。</value></data>
+  <data name="WorkingDirectoryValidation" xml:space="preserve"><value>请输入工作目录的完整路径。</value></data>
+  <data name="DelayPortValidation" xml:space="preserve"><value>延迟为 0–600 秒，端口为 1–65535。</value></data>
+  <data name="ArgumentsValidation" xml:space="preserve"><value>参数需填写在一行内，最多 6000 个字符。</value></data>
+  <data name="CmdLengthValidation" xml:space="preserve"><value>批处理路径与参数超过 CMD 的长度限制。</value></data>
+  <data name="InvalidPortTableSize" xml:space="preserve"><value>Windows 返回的端口表大小无效。</value></data>
+  <data name="PortTableChanging" xml:space="preserve"><value>端口表正在变化，请刷新。</value></data>
+  <data name="InvalidPortTable" xml:space="preserve"><value>Windows 返回的端口表数据无效。</value></data>
+  <data name="TaskReadError" xml:space="preserve"><value>无法读取任务 {0:N}：{1}</value></data>
+  <data name="TaskAlreadyRunning" xml:space="preserve"><value>这一项已在运行。</value></data>
+  <data name="TaskNotFound" xml:space="preserve"><value>找不到由本工具登记的自启任务。</value></data>
+  <data name="TaskConfigMissing" xml:space="preserve"><value>任务配置缺失。</value></data>
+  <data name="TaskConfigInvalid" xml:space="preserve"><value>任务配置格式无效。</value></data>
+  <data name="TaskTriggerChanged" xml:space="preserve"><value>任务的登录触发器已被修改。</value></data>
+  <data name="SecondsDuration" xml:space="preserve"><value>{0} 秒</value></data>
+  <data name="Queued" xml:space="preserve"><value>等待启动</value></data>
+  <data name="Running" xml:space="preserve"><value>运行中</value></data>
+  <data name="Starting" xml:space="preserve"><value>正在启动</value></data>
+  <data name="NeverRun" xml:space="preserve"><value>尚未运行</value></data>
+  <data name="LaunchFailed" xml:space="preserve"><value>启动失败</value></data>
+  <data name="TrackingInterrupted" xml:space="preserve"><value>跟踪已中断</value></data>
+  <data name="Exited" xml:space="preserve"><value>已退出</value></data>
+  <data name="ExitCode" xml:space="preserve"><value>退出码 {0}</value></data>
+  <data name="Finished" xml:space="preserve"><value>已结束</value></data>
+  <data name="ListeningAndOccupied" xml:space="preserve"><value>已监听，另有占用</value></data>
+  <data name="ListeningPartlyUnknown" xml:space="preserve"><value>已监听，部分未知</value></data>
+  <data name="Listening" xml:space="preserve"><value>已监听</value></data>
+  <data name="CannotConfirm" xml:space="preserve"><value>无法确认</value></data>
+  <data name="OccupiedByOthers" xml:space="preserve"><value>被其他进程占用</value></data>
+  <data name="NotListening" xml:space="preserve"><value>未监听</value></data>
+  <data name="WorkingDirectoryDetails" xml:space="preserve"><value>工作目录 {0}</value></data>
+  <data name="LastLaunchDetails" xml:space="preserve"><value>最近启动 {0:MM-dd HH:mm:ss}</value></data>
+  <data name="ActualListeners" xml:space="preserve"><value>实际监听 {0}</value></data>
+  <data name="OtherPortOwners" xml:space="preserve"><value>同端口的其他进程 {0}</value></data>
+  <data name="ListSeparator" xml:space="preserve"><value>、</value></data>
+</root>

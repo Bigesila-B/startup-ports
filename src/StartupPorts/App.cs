@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Markup;
 
 namespace StartupPorts;
 
@@ -11,6 +10,7 @@ internal static class App
     {
         try
         {
+            UiText.LoadPreference();
             if (args is ["--run", var id] && Guid.TryParseExact(id, "N", out var entry))
                 return LaunchRunner.Run(entry);
             if (args is ["--prepare-upgrade"] or ["--uninstall"])
@@ -20,8 +20,7 @@ internal static class App
 
             var app = new Application { ShutdownMode = ShutdownMode.OnMainWindowClose };
             app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("Theme.xaml", UriKind.Relative) });
-            FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement),
-                new FrameworkPropertyMetadata(XmlLanguage.GetLanguage("zh-CN")));
+            UiText.ApplyResources(app);
             return app.Run(new MainWindow());
         }
         catch (Exception ex) when (args.Length > 0 && ex is COMException or UnauthorizedAccessException or InvalidOperationException)

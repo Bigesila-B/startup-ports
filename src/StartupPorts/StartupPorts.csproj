@@ -5,12 +5,14 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>0.1.0</Version>
+    <Version>0.2.5</Version>
     <Product>StartupPorts</Product>
-    <Description>Windows 登录自启与本机端口监控</Description>
+    <Description>Windows sign-in startup tasks and local port monitor</Description>
+    <ApplicationIcon>Assets\StartupPorts.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="StartupPorts.Checks" />
+    <Resource Include="Assets\StartupPorts.ico;Assets\StartupPorts.png" />
   </ItemGroup>
 </Project>

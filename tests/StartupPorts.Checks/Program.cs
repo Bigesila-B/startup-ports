@@ -1,7 +1,14 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Xml;
 using StartupPorts;
 
@@ -17,6 +24,8 @@ if (args is ["--mark", var marker, var markerValue])
 }
 
 CheckNativePorts();
+CheckWindowsStartup();
+CheckProcessCell();
 if (args is ["--scheduler", var launcher])
     await CheckScheduler(Path.GetFullPath(launcher));
 if (args is ["--installer", var installer])
@@ -63,7 +72,16 @@ static void CheckNativePorts()
     var discovery = new PortDiscovery();
     var existing = snapshot.Rows.First(row => row.Pid == Environment.ProcessId);
     var replacement = existing with { Created = existing.Created + 1 };
+    var alternateAddress = existing.Endpoint.Address.Equals(IPAddress.IPv6Loopback) ? IPAddress.Loopback : IPAddress.IPv6Loopback;
+    var alternate = existing with { Endpoint = existing.Endpoint with { Address = alternateAddress } };
+    var services = PortService.Group(new([existing, alternate], []), new Dictionary<Guid, string>(), new ProcessIcons());
+    var service = services.Single();
+    Require(service.Address.Contains(IPAddress.Loopback.ToString()) && service.Address.Contains(IPAddress.IPv6Loopback.ToString()),
+        "Grouping lost one of the listen addresses.");
+    Require(service.Matches(service.Port.ToString(), 0, 1) && !service.Matches("61000" + service.Port, 0, 0),
+        "Port search or current-user filter is incorrect.");
     Require(discovery.Update(new([existing], [])).Count == 0, "Initial discovery must be silent.");
+    Require(discovery.Update(new([existing, alternate], [])).Count == 0, "Adding a second address announced a duplicate port.");
     Require(discovery.Update(new([replacement], [])).Single() == replacement, "Reused PID was not rediscovered.");
     discovery.Dismiss();
     Require(discovery.Update(new([replacement], [])).Count == 0, "Dismissed discovery reappeared.");
@@ -76,6 +94,172 @@ static void CheckNativePorts()
     var clientPort = ((IPEndPoint)client.Client.LocalEndPoint!).Port;
     var updatedRows = NativePorts.Read(Protocol.Tcp, AddressFamily.InterNetwork);
     Require(!updatedRows.Any(row => row.Port == clientPort), "TCP connection incorrectly reported as a listener.");
+}
+
+static void CheckWindowsStartup()
+{
+    Require(WindowsStartup.ApprovalState(BitConverter.GetBytes(2u)) == "已启用" &&
+        WindowsStartup.ApprovalState(BitConverter.GetBytes(7u)) == "已停用" &&
+        WindowsStartup.ApprovalState(BitConverter.GetBytes(255u)) == "状态未知" &&
+        WindowsStartup.ApprovalState(null) == "已登记", "Startup approval states were interpreted incorrectly.");
+    var snapshot = WindowsStartup.Read();
+    Require(snapshot.Items.DistinctBy(item => item.Id).Count() == snapshot.Items.Count,
+        "Windows startup list contained duplicate entries.");
+    var icons = new StartupIcons();
+    Require(icons.FromCommand("  \"%SystemRoot%\\explorer.exe\" --sample") is { IsFrozen: true },
+        "Quoted Run commands or environment paths lost their icons.");
+    Require(icons.FromCommand("some-unknown-host \"%SystemRoot%\\explorer.exe\"") == null,
+        "An executable argument was incorrectly treated as the startup target.");
+
+    var fixture = Directory.CreateTempSubdirectory("StartupPorts icons ");
+    var explorer = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
+    var executable = Path.Combine(fixture.FullName, "Test Explorer.exe");
+    var shortcutPath = Path.Combine(fixture.FullName, "Test Explorer.lnk");
+    try
+    {
+        File.Copy(explorer, executable);
+        Require(icons.FromCommand(executable + " --sample") is { IsFrozen: true },
+            "A legacy unquoted Run path lost its icon.");
+        Require(icons.FromExecutable(executable) is { IsFrozen: true },
+            "A scheduled action or direct startup file lost its icon.");
+
+        dynamic shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell")!)!;
+        dynamic shortcut = shell.CreateShortcut(shortcutPath);
+        try
+        {
+            shortcut.TargetPath = executable;
+            shortcut.Save();
+            Require(icons.FromStartupFile(shortcutPath) is { IsFrozen: true },
+                "A shortcut did not display its target icon.");
+
+            shortcut.TargetPath = Path.Combine(fixture.FullName, "Missing.exe");
+            shortcut.IconLocation = $"{explorer},0";
+            shortcut.Save();
+            Require(icons.FromStartupFile(shortcutPath) is { IsFrozen: true },
+                "A shortcut did not display its explicit icon.");
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(shortcut);
+            Marshal.ReleaseComObject(shell);
+        }
+    }
+    finally
+    {
+        File.Delete(shortcutPath);
+        File.Delete(executable);
+        fixture.Delete();
+    }
+    Console.WriteLine($"Read {snapshot.Items.Count} Windows startup items, {snapshot.Items.Count(item => item.Icon != null)} with program icons.");
+}
+
+static void CheckProcessCell()
+{
+    Exception? failure = null;
+    var thread = new Thread(() =>
+    {
+        try
+        {
+            var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+            app.Resources.MergedDictionaries.Add(new ResourceDictionary
+            {
+                Source = new Uri("pack://application:,,,/StartupPorts;component/Theme.xaml"),
+            });
+            UiText.ApplyResources(app);
+            var window = new MainWindow();
+            try
+            {
+                var grid = (DataGrid)window.FindName("PortGrid");
+                var template = ((DataGridTemplateColumn)grid.Columns[0]).CellTemplate;
+                var startupGrid = (DataGrid)window.FindName("WindowsStartupGrid");
+                var startupTemplate = ((DataGridTemplateColumn)startupGrid.Columns[0]).CellTemplate;
+                var explorer = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
+                var sample = new PortRow(new(Protocol.Tcp, IPAddress.Loopback, 3000, 1000), "explorer.exe",
+                    explorer, null, null, null, null, false, false, [], false);
+                var icons = new ProcessIcons();
+                var names = new Dictionary<Guid, string>();
+                var known = PortService.Group(new([sample], []), names, icons).Single();
+                var unknown = PortService.Group(new([sample with { Process = "sample.exe", Path = null }], []), names, icons).Single();
+                Require(known.Icon is { IsFrozen: true, PixelWidth: >= 32, PixelHeight: >= 32 } &&
+                    known.Name != "explorer.exe" && known.ProcessSummary.Contains("explorer.exe"),
+                    "Explorer's large application icon or friendly name could not be read.");
+                Require(unknown.Icon == null && unknown.Name == "sample.exe", "The executable name fallback was lost.");
+
+                var startup = new WindowsStartupItem("shortcut", "Explorer", "启动文件夹", "当前用户", "已启用", explorer, known.Icon);
+                var rows = new (DataTemplate Template, object Item, BitmapSource? Icon)[]
+                {
+                    (template, known, known.Icon),
+                    (template, unknown, null),
+                    (startupTemplate, startup, startup.Icon),
+                    (startupTemplate, startup with { Icon = null }, null),
+                };
+                foreach (var row in rows)
+                {
+                    var cell = new ContentPresenter { Content = row.Item, ContentTemplate = row.Template };
+                    cell.ApplyTemplate();
+                    cell.Measure(new Size(230, 58));
+                    cell.Arrange(new Rect(0, 0, 230, 58));
+                    cell.UpdateLayout();
+                    var badge = (ContentPresenter)row.Template.FindName("ProgramBadge", cell);
+                    var image = (Image)badge.ContentTemplate.FindName("ProcessImage", badge);
+                    var fallback = (FrameworkElement)badge.ContentTemplate.FindName("ProcessFallback", badge);
+                    if (row.Icon != null)
+                        Require(image.Visibility == Visibility.Visible && image.Source == row.Icon &&
+                            image.ActualWidth == 32 && fallback.Visibility == Visibility.Collapsed,
+                            "The port table hid or shrank the application icon.");
+                    else
+                        Require(image.Visibility == Visibility.Collapsed && fallback.Visibility == Visibility.Visible &&
+                            fallback.ActualWidth > 0, "The port table hid the generic process icon.");
+
+                    var rendered = new RenderTargetBitmap(230, 58, 96, 96, PixelFormats.Pbgra32);
+                    rendered.Render(cell);
+                    var pixels = new byte[230 * 58 * 4];
+                    rendered.CopyPixels(pixels, 230 * 4, 0);
+                    var iconPixels = Enumerable.Range(8, 38).Sum(y => Enumerable.Range(3, 32).Count(x =>
+                    {
+                        var index = (y * 230 + x) * 4;
+                        return pixels[index + 3] > 0 && Math.Min(pixels[index], Math.Min(pixels[index + 1], pixels[index + 2])) < 180;
+                    }));
+                    Require(iconPixels > 20, "The rendered process cell has no visible icon inside its badge.");
+                }
+                Console.WriteLine("Rendered Windows startup and port rows show application icons and the generic fallback.");
+
+                Require(UiText.ResolveLanguage("en-US", CultureInfo.GetCultureInfo("zh-CN")) == "en-US" &&
+                    UiText.ResolveLanguage("zh-CN", CultureInfo.GetCultureInfo("en-US")) == "zh-CN" &&
+                    UiText.ResolveLanguage(null, CultureInfo.GetCultureInfo("zh-CN")) == "zh-CN",
+                    "The selected language did not override the Windows default.");
+
+                var refresh = (Button)window.FindName("RefreshButton");
+                var language = (ComboBox)window.FindName("LanguageSelector");
+                var header = startupGrid.Columns[0];
+                foreach (var (code, refreshText, name, entryTitle, enabled) in new[]
+                {
+                    ("en-US", "Refresh", "Name", "Add startup item", "Enabled"),
+                    ("zh-CN", "刷新", "名称", "添加自启项", "已启用"),
+                })
+                {
+                    window.ApplyLanguage(code);
+                    window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Background);
+                    Require((string)refresh.Content == refreshText, $"Refresh text did not update for {code}.");
+                    Require((string)language.SelectedValue == code, $"The language selector did not select {code}.");
+                    Require((string)header.Header == name, $"The startup column header did not update for {code}.");
+                    var editor = new EntryDialog(null, null);
+                    try { Require(editor.Title == entryTitle, "The startup editor did not use the selected language."); }
+                    finally { editor.Close(); }
+                    Require(WindowsStartup.ApprovalState(BitConverter.GetBytes(2u)) == enabled,
+                        "Startup status did not use the selected language.");
+                }
+                Console.WriteLine("Verified live English and Simplified Chinese switching in the main window and startup editor.");
+            }
+            finally { window.Close(); }
+        }
+        catch (Exception ex) { failure = ex; }
+    });
+    thread.SetApartmentState(ApartmentState.STA);
+    thread.Start();
+    thread.Join();
+    if (failure != null)
+        ExceptionDispatchInfo.Capture(failure).Throw();
 }
 
 static async Task CheckScheduler(string launcher)

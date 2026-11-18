@@ -2,6 +2,9 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text.Json;
+using System.Windows.Media.Imaging;
+
+using static StartupPorts.UiText;
 
 namespace StartupPorts;
 
@@ -36,7 +39,7 @@ internal sealed class TaskStore
             try { result.Add(Read(id, task)); }
             catch (Exception ex) when (ex is JsonException or InvalidDataException or COMException)
             {
-                issues.Add($"无法读取任务 {id:N}：{ex.Message}");
+                issues.Add(L("TaskReadError", id, ex.Message));
             }
         }
         return new(result.OrderBy(row => row.Entry.Name, StringComparer.CurrentCulture).ToArray(), issues);
@@ -95,7 +98,7 @@ internal sealed class TaskStore
         ScheduledEntry entry = Read(id, task);
         entry.Entry.Validate();
         if (entry.State == 4)
-            throw new InvalidOperationException("这一项已在运行。");
+            throw new InvalidOperationException(L("TaskAlreadyRunning"));
         task.Run(null);
     }
 
@@ -110,6 +113,80 @@ internal sealed class TaskStore
     {
         foreach (var (id, _) in OwnedTasks().ToArray())
             Delete(id);
+    }
+
+    public void ReadOtherLogonTasks(List<WindowsStartupItem> items, StartupIcons icons)
+    {
+        var folders = new Stack<object>();
+        folders.Push((object)Folder);
+        while (folders.TryPop(out var candidate))
+        {
+            dynamic folder = candidate;
+            try
+            {
+                dynamic children = folder.GetFolders(0);
+                for (var index = 1; index <= (int)children.Count; index++)
+                    folders.Push((object)children[index]);
+                dynamic tasks = folder.GetTasks(1);
+                for (var index = 1; index <= (int)tasks.Count; index++)
+                    AddLogonTask((object)tasks[index], items, icons);
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException ||
+                ex.HResult is FileNotFound or TaskNotFound) { }
+        }
+    }
+
+    private static void AddLogonTask(object candidate, List<WindowsStartupItem> items, StartupIcons icons)
+    {
+        dynamic task = candidate;
+        try
+        {
+            string name = task.Name;
+            if (name.StartsWith(Prefix, StringComparison.OrdinalIgnoreCase) && IsOwned(candidate))
+                return;
+            dynamic definition = task.Definition;
+            var matches = false;
+            var allUsers = false;
+            var triggerEnabled = false;
+            dynamic triggers = definition.Triggers;
+            for (var index = 1; index <= (int)triggers.Count; index++)
+            {
+                dynamic trigger = triggers[index];
+                if ((int)trigger.Type != 9)
+                    continue;
+                string? user = trigger.UserId;
+                var anyUser = string.IsNullOrWhiteSpace(user);
+                if (!anyUser && !IsCurrentUser(user!))
+                    continue;
+                matches = true;
+                allUsers |= anyUser;
+                triggerEnabled |= (bool)trigger.Enabled;
+            }
+            if (!matches)
+                return;
+            string path = task.Path;
+            var icon = ReadActionIcon((object)definition.Actions, icons);
+            items.Add(new(path, name, L("ScheduledLogon"), allUsers ? L("AllUsers") : L("CurrentUser"),
+                (bool)task.Enabled && triggerEnabled ? L("Enabled") : L("Disabled"), path, icon));
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException ||
+            ex.HResult is FileNotFound or TaskNotFound) { }
+    }
+
+    private static BitmapSource? ReadActionIcon(object collection, StartupIcons icons)
+    {
+        dynamic actions = collection;
+        try
+        {
+            for (var index = 1; index <= (int)actions.Count; index++)
+            {
+                dynamic action = actions[index];
+                if ((int)action.Type == 0 && icons.FromExecutable((string?)action.Path) is { } icon)
+                    return icon;
+            }
+        }
+        catch (Exception ex) when (ex is COMException or UnauthorizedAccessException or IOException) { }
+        return null;
     }
 
     private IEnumerable<(Guid Id, object Task)> OwnedTasks()
@@ -134,7 +211,7 @@ internal sealed class TaskStore
                 return task;
         }
         catch (Exception ex) when (ex.HResult is FileNotFound or TaskNotFound) { }
-        throw new InvalidOperationException("找不到由本工具登记的自启任务。");
+        throw new InvalidOperationException(L("TaskNotFound"));
     }
 
     private static bool IsOwned(object candidate)
@@ -143,11 +220,17 @@ internal sealed class TaskStore
         dynamic definition = task.Definition;
         if ((string)definition.RegistrationInfo.Source != Source)
             return false;
-        string principal = definition.Principal.UserId;
-        if (string.Equals(principal, AppIdentity.Sid, StringComparison.OrdinalIgnoreCase))
+        return IsCurrentUser((string)definition.Principal.UserId);
+    }
+
+    private static bool IsCurrentUser(string user)
+    {
+        if (string.Equals(user, AppIdentity.Sid, StringComparison.OrdinalIgnoreCase))
             return true;
-        try { return new NTAccount(principal).Translate(typeof(SecurityIdentifier)).Value == AppIdentity.Sid; }
-        catch (IdentityNotMappedException) { return false; }
+        if (string.IsNullOrWhiteSpace(user))
+            return false;
+        try { return new NTAccount(user).Translate(typeof(SecurityIdentifier)).Value == AppIdentity.Sid; }
+        catch (Exception ex) when (ex is IdentityNotMappedException or ArgumentException) { return false; }
     }
 
     private static ScheduledEntry Read(Guid id, object candidate)
@@ -155,13 +238,13 @@ internal sealed class TaskStore
         dynamic task = candidate;
         dynamic definition = task.Definition;
         if (definition.Data is not string data || data.Length == 0)
-            throw new InvalidDataException("任务配置缺失。");
+            throw new InvalidDataException(L("TaskConfigMissing"));
         var stored = JsonSerializer.Deserialize<StoredEntry>(data);
         if (stored is not { Version: 1 } || stored.Entry is not { } entry || entry.Id != id ||
             entry.Name is null || entry.Target is null || entry.WorkingDirectory is null || entry.Arguments is null)
-            throw new InvalidDataException("任务配置格式无效。");
+            throw new InvalidDataException(L("TaskConfigInvalid"));
         if ((int)definition.Triggers.Count != 1 || (int)definition.Triggers[1].Type != 9)
-            throw new InvalidDataException("任务的登录触发器已被修改。");
+            throw new InvalidDataException(L("TaskTriggerChanged"));
         bool enabled = task.Enabled && definition.Triggers[1].Enabled;
         return new(entry with { Enabled = enabled }, (int)task.State);
     }

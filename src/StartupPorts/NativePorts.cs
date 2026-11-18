@@ -3,6 +3,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
+using static StartupPorts.UiText;
+
 namespace StartupPorts;
 
 internal sealed record BoundEndpoint(Protocol Protocol, IPAddress Address, int Port, int ProcessId)
@@ -18,7 +20,9 @@ internal sealed record BoundEndpoint(Protocol Protocol, IPAddress Address, int P
                 return null;
             var address = Address.Equals(IPAddress.Any) ? IPAddress.Loopback :
                 Address.Equals(IPAddress.IPv6Any) ? IPAddress.IPv6Loopback : Address;
-            return IPAddress.IsLoopback(address) ? new UriBuilder("http", address.ToString(), Port).Uri : null;
+            if (address.AddressFamily == AddressFamily.InterNetworkV6 && address.ScopeId != 0)
+                return null;
+            return new UriBuilder("http", address.ToString(), Port).Uri;
         }
     }
 }
@@ -45,14 +49,14 @@ internal static class NativePorts
                 if (result != InsufficientBuffer)
                     throw new Win32Exception((int)result);
                 if (length is < 4 or > 67_108_864)
-                    throw new InvalidOperationException("Windows 返回的端口表大小无效。");
+                    throw new InvalidOperationException(L("InvalidPortTableSize"));
                 if (pointer != 0)
                     Marshal.FreeHGlobal(pointer);
                 pointer = nint.Zero;
                 pointer = Marshal.AllocHGlobal((int)length);
                 capacity = length;
             }
-            throw new InvalidOperationException("端口表正在变化，请刷新。");
+            throw new InvalidOperationException(L("PortTableChanging"));
         }
         finally
         {
@@ -75,7 +79,7 @@ internal static class NativePorts
         var addressOffset = protocol == Protocol.Tcp && !ip6 ? 4 : 0;
         var count = length >= 4 ? Marshal.ReadInt32(table) : -1;
         if (count < 0 || count > (length - 4) / rowSize)
-            throw new InvalidOperationException("Windows 返回的端口表数据无效。");
+            throw new InvalidOperationException(L("InvalidPortTable"));
         var result = new List<BoundEndpoint>(count);
         for (var index = 0; index < count; index++)
         {

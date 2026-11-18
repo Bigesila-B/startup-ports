@@ -2,8 +2,8 @@ namespace StartupPorts;
 
 internal sealed class PortDiscovery
 {
-    private Dictionary<BoundEndpoint, long?>? _baseline;
-    private readonly HashSet<BoundEndpoint> _discovered = [];
+    private Dictionary<(Protocol Protocol, int Port, int Pid), long?>? _baseline;
+    private readonly HashSet<(Protocol Protocol, int Port, int Pid)> _discovered = [];
 
     public void Reset()
     {
@@ -21,7 +21,9 @@ internal sealed class PortDiscovery
             return [];
         }
 
-        var now = snapshot.Rows.ToDictionary(row => row.Endpoint, row => row.Created);
+        var rows = snapshot.Rows.GroupBy(row => (row.Endpoint.Protocol, row.Port, row.Pid))
+            .ToDictionary(group => group.Key, group => group.First());
+        var now = rows.ToDictionary(pair => pair.Key, pair => pair.Value.Created);
         if (_baseline is { } before)
         {
             _discovered.RemoveWhere(endpoint => !now.ContainsKey(endpoint));
@@ -31,6 +33,6 @@ internal sealed class PortDiscovery
                     _discovered.Add(endpoint);
         }
         _baseline = now;
-        return snapshot.Rows.Where(row => _discovered.Contains(row.Endpoint)).ToArray();
+        return rows.Where(pair => _discovered.Contains(pair.Key)).Select(pair => pair.Value).ToArray();
     }
 }

@@ -6,17 +6,19 @@ Manage which apps and scripts start when you sign in to Windows. See which proce
 
 ## Install and use
 
-Download the Windows 11 x64 installer, `StartupPorts-*-win-x64-setup.exe`, from [GitHub Releases](https://github.com/Bigesila-B/startup-ports/releases). It installs for the current Windows account and includes the .NET runtime. The desktop interface is in Simplified Chinese.
+Download the Windows 11 x64 installer, `StartupPorts-*-win-x64-setup.exe`, from [GitHub Releases](https://github.com/Bigesila-B/startup-ports/releases). It installs for the current Windows account and includes the .NET runtime. Setup is available in Simplified Chinese and English, with an optional desktop shortcut. The app first opens in the language chosen in Setup. You can switch languages at any time using the selector at the bottom left, and the app remembers your choice.
 
 1. In Startup Management (自启管理), select Add Startup Item (添加自启项) and choose an `.exe`, `.bat`, `.cmd`, or `.ps1` file. Set arguments, a working directory, and a sign-in delay as needed.
 2. If the app listens on a port, enter the expected port and choose TCP or UDP. Save the entry and select Run Now (立即运行) to check whether the startup item owns that port. Select an item to see which ports it actually uses or which process owns the expected port.
 3. In Port Monitor (端口监控), search by port, process name, or PID. Select a row to copy the address, open a supported TCP address in your browser, or prefill a startup item. If a script launched the process, you can use that script in place of the executable in the prefilled form.
 
+Windows Startup Items (Windows 启动项) lists existing Run and RunOnce registry entries, the current user's and shared Startup folders, and readable scheduled logon tasks. See each item's program icon, status, source, and startup command. Open Windows Startup Settings (打开 Windows 启动设置) to manage Windows startup apps, including Store apps registered there.
+
 Windows Task Scheduler runs enabled items the next time the current account signs in, even if the main window is closed. Disabling an item turns off its sign-in trigger. You can still test it with Run Now. PowerShell scripts follow the account's execution policy, and batch arguments follow CMD syntax.
 
-The monitor covers IPv4 and IPv6 TCP listeners and UDP bindings. Available process details depend on the current account's permissions. StartupPorts identifies launch sources from verifiable parent processes or from its own launch records. Before ending a process, the app asks for confirmation and checks that it still owns the port.
+The monitor covers IPv4 and IPv6 TCP listeners and UDP bindings. Addresses for the same process, protocol, and port are grouped in one row, with filters for process ownership. The process column shows the app icon and readable app name alongside the executable name and PID. A generic icon is shown when Windows provides no app icon. StartupPorts identifies launch sources from verifiable parent processes or from its own launch records. Before ending a process, the app asks for confirmation and checks that it still owns the port.
 
-The app installs to `%LOCALAPPDATA%\Programs\StartupPorts`. Updates keep your startup tasks and leave running apps open. Some port ownership details become available again the next time StartupPorts launches the item. Uninstalling removes tasks registered by StartupPorts and leaves the apps it launched running.
+Choose a folder during your first installation. The default is `%LOCALAPPDATA%\Programs\StartupPorts`. Updates reuse the existing folder and keep your startup tasks. Some port ownership details become available again the next time StartupPorts launches the item. To change folders, save your startup item settings, uninstall, and reinstall in the new folder. Uninstalling removes tasks registered by StartupPorts and leaves the apps it launched running.
 
 ## Build from source
 
@@ -38,3 +40,5 @@ dotnet run --project tests/StartupPorts.Checks -- --scheduler './src/StartupPort
 ## Credits and license
 
 The port list, new-port notifications, and process launch-source features were inspired by [local-ops](https://github.com/laogou717/local-ops). StartupPorts implements these features using native Windows APIs. The project is released under the [MIT License](LICENSE).
+
+The installer uses the Inno Setup Simplified Chinese translation maintained by Zhenghan Yang. [Translation source](https://jrsoftware.org/inno-setup/translations) · [Inno Setup license](installer/InnoSetup-LICENSE.txt)

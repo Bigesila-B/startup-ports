@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="GenericProgramIcon" xml:space="preserve"><value>Generic program icon</value></data>
+  <data name="StartupManagement" xml:space="preserve"><value>Startup Tasks</value></data>
+  <data name="WindowsStartupItems" xml:space="preserve"><value>Windows Startup</value></data>
+  <data name="PortMonitor" xml:space="preserve"><value>Port Monitor</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="AddButton" xml:space="preserve"><value>＋ Add startup item</value></data>
+  <data name="AddEntry" xml:space="preserve"><value>Add startup item</value></data>
+  <data name="EditEntry" xml:space="preserve"><value>Edit startup item</value></data>
+  <data name="StartupEntry" xml:space="preserve"><value>Startup item</value></data>
+  <data name="StartupPageDescription" xml:space="preserve"><value>Manage the apps and scripts you’ve set to run at sign-in.</value></data>
+  <data name="StartupInitialDescription" xml:space="preserve"><value>Choose apps and scripts to run when you sign in to Windows.</value></data>
+  <data name="WindowsStartupDescription" xml:space="preserve"><value>See sign-in items from the registry, Startup folders, and Task Scheduler.</value></data>
+  <data name="PortMonitorDescription" xml:space="preserve"><value>See local ports and the processes using them.</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="ReadingTasks" xml:space="preserve"><value>Reading startup tasks…</value></data>
+  <data name="RunNow" xml:space="preserve"><value>Run now</value></data>
+  <data name="EnableDisable" xml:space="preserve"><value>Enable / Disable</value></data>
+  <data name="Enable" xml:space="preserve"><value>Enable</value></data>
+  <data name="Disable" xml:space="preserve"><value>Disable</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="StartupTasks" xml:space="preserve"><value>Startup tasks</value></data>
+  <data name="Name" xml:space="preserve"><value>Name</value></data>
+  <data name="StartAtSignIn" xml:space="preserve"><value>Run at sign-in</value></data>
+  <data name="Delay" xml:space="preserve"><value>Delay</value></data>
+  <data name="ExpectedPort" xml:space="preserve"><value>Expected port</value></data>
+  <data name="LastLaunch" xml:space="preserve"><value>Last launch</value></data>
+  <data name="NoStartupTasks" xml:space="preserve"><value>No startup tasks yet</value></data>
+  <data name="StartupEmptyHint" xml:space="preserve"><value>Add an app or script, or open Windows Startup to see existing items.</value></data>
+  <data name="OpenWindowsStartupSettings" xml:space="preserve"><value>Windows startup settings</value></data>
+  <data name="ReadingStartupItems" xml:space="preserve"><value>Reading startup items…</value></data>
+  <data name="RegisteredWindowsStartup" xml:space="preserve"><value>Registered Windows startup items</value></data>
+  <data name="State" xml:space="preserve"><value>Status</value></data>
+  <data name="Source" xml:space="preserve"><value>Source</value></data>
+  <data name="Scope" xml:space="preserve"><value>Scope</value></data>
+  <data name="CommandOrPath" xml:space="preserve"><value>Command or path</value></data>
+  <data name="NoWindowsStartupItems" xml:space="preserve"><value>No Windows startup items to display</value></data>
+  <data name="CopyCommandOrPath" xml:space="preserve"><value>Copy command or path</value></data>
+  <data name="FilterProtocol" xml:space="preserve"><value>Filter by protocol</value></data>
+  <data name="AllProtocols" xml:space="preserve"><value>All protocols</value></data>
+  <data name="FilterOwner" xml:space="preserve"><value>Filter by process owner</value></data>
+  <data name="AllProcesses" xml:space="preserve"><value>All processes</value></data>
+  <data name="CurrentUser" xml:space="preserve"><value>Current user</value></data>
+  <data name="OtherOrUnknown" xml:space="preserve"><value>Other or unknown</value></data>
+  <data name="SearchPorts" xml:space="preserve"><value>Search ports, process names, or PIDs</value></data>
+  <data name="LocalPorts" xml:space="preserve"><value>Local ports</value></data>
+  <data name="Process" xml:space="preserve"><value>Process</value></data>
+  <data name="Port" xml:space="preserve"><value>Port</value></data>
+  <data name="Protocol" xml:space="preserve"><value>Protocol</value></data>
+  <data name="BindAddress" xml:space="preserve"><value>Bind address</value></data>
+  <data name="Memory" xml:space="preserve"><value>Memory</value></data>
+  <data name="Cpu" xml:space="preserve"><value>CPU</value></data>
+  <data name="NoMatchingPorts" xml:space="preserve"><value>No matching ports</value></data>
+  <data name="CopyAddress" xml:space="preserve"><value>Copy addresses</value></data>
+  <data name="OpenInBrowser" xml:space="preserve"><value>Open in browser</value></data>
+  <data name="AddFromPort" xml:space="preserve"><value>Add to startup</value></data>
+  <data name="EndProcess" xml:space="preserve"><value>End process</value></data>
+  <data name="ReadingLocalState" xml:space="preserve"><value>Reading local status…</value></data>
+  <data name="ImportHint" xml:space="preserve"><value>Check the startup file. If a script launched the process, select the original script and enter its arguments.</value></data>
+  <data name="StartupFile" xml:space="preserve"><value>Startup file</value></data>
+  <data name="Browse" xml:space="preserve"><value>Browse…</value></data>
+  <data name="OptionalArguments" xml:space="preserve"><value>Arguments (optional)</value></data>
+  <data name="Arguments" xml:space="preserve"><value>Arguments</value></data>
+  <data name="ArgumentsHelp" xml:space="preserve"><value>Use the program’s command-line syntax. Wrap arguments containing spaces in double quotes.</value></data>
+  <data name="WorkingDirectoryHint" xml:space="preserve"><value>Working directory (defaults to the folder containing the startup file)</value></data>
+  <data name="WorkingDirectory" xml:space="preserve"><value>Working directory</value></data>
+  <data name="DelayInSeconds" xml:space="preserve"><value>Startup delay (seconds)</value></data>
+  <data name="StartupDelay" xml:space="preserve"><value>Startup delay</value></data>
+  <data name="OptionalExpectedPort" xml:space="preserve"><value>Expected port (optional)</value></data>
+  <data name="PortProtocol" xml:space="preserve"><value>Port protocol</value></data>
+  <data name="StartAtCurrentUserSignIn" xml:space="preserve"><value>Start when the current user signs in</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="UiLanguage" xml:space="preserve"><value>Language</value></data>
+  <data name="ExecutableFilter" xml:space="preserve"><value>Programs and scripts (*.exe;*.bat;*.cmd;*.ps1)|*.exe;*.bat;*.cmd;*.ps1</value></data>
+  <data name="DelayIntegerError" xml:space="preserve"><value>Enter the startup delay as a whole number of seconds.</value></data>
+  <data name="PortIntegerError" xml:space="preserve"><value>Enter a whole port number.</value></data>
+  <data name="TaskCount" xml:space="preserve"><value>{0} items · {1} enabled</value></data>
+  <data name="TasksUnavailable" xml:space="preserve"><value>Tasks are unavailable</value></data>
+  <data name="RefreshedEveryTwoSeconds" xml:space="preserve"><value>Updated {0:HH:mm:ss} · Refreshes every 2 seconds</value></data>
+  <data name="LocalReadError" xml:space="preserve"><value>Could not read local status. {0}</value></data>
+  <data name="TasksReadError" xml:space="preserve"><value>Startup tasks are unavailable. {0}</value></data>
+  <data name="ReadingWindowsStartup" xml:space="preserve"><value>Reading Windows startup items…</value></data>
+  <data name="SystemCount" xml:space="preserve"><value>{0} items · Read-only</value></data>
+  <data name="RefreshedAt" xml:space="preserve"><value>Updated {0:HH:mm:ss}</value></data>
+  <data name="WindowsStartupReadError" xml:space="preserve"><value>Could not read Windows startup items. {0}</value></data>
+  <data name="DiscoveryCount" xml:space="preserve"><value>{0} new listeners · {1}</value></data>
+  <data name="PortCount" xml:space="preserve"><value>{0} listeners</value></data>
+  <data name="FilteredPortCount" xml:space="preserve"><value>{0} of {1} listeners</value></data>
+  <data name="ChooseStartupTask" xml:space="preserve"><value>Select an item to see its startup file and active ports.</value></data>
+  <data name="ChoosePort" xml:space="preserve"><value>Select a row to see all bind addresses and the executable path.</value></data>
+  <data name="ChooseWindowsStartupItem" xml:space="preserve"><value>Select an item to see its startup command or path.</value></data>
+  <data name="DeletePrompt" xml:space="preserve"><value>Remove “{0}” from your sign-in tasks?</value></data>
+  <data name="EndProcessPrompt" xml:space="preserve"><value>End {0} (PID {1})? Unsaved data in this process may be lost.</value></data>
+  <data name="LanguageSaveError" xml:space="preserve"><value>Could not save the display language. {0}</value></data>
+  <data name="CurrentUserRegistry" xml:space="preserve"><value>Current-user registry</value></data>
+  <data name="SystemRegistry" xml:space="preserve"><value>System registry</value></data>
+  <data name="SystemRegistry32" xml:space="preserve"><value>32-bit system registry</value></data>
+  <data name="CurrentUserStartupFolder" xml:space="preserve"><value>Current-user Startup folder</value></data>
+  <data name="CommonStartupFolder" xml:space="preserve"><value>Shared Startup folder</value></data>
+  <data name="ScheduledLogonTasks" xml:space="preserve"><value>Scheduled sign-in tasks</value></data>
+  <data name="AllUsers" xml:space="preserve"><value>All users</value></data>
+  <data name="RunOnce" xml:space="preserve"><value>One-time startup</value></data>
+  <data name="DefaultStartupItem" xml:space="preserve"><value>Default entry</value></data>
+  <data name="RegistrySource32" xml:space="preserve"><value>Registry {0} (32-bit)</value></data>
+  <data name="RegistrySource" xml:space="preserve"><value>Registry {0}</value></data>
+  <data name="StartupFolder" xml:space="preserve"><value>Startup folder</value></data>
+  <data name="Registered" xml:space="preserve"><value>Registered</value></data>
+  <data name="Enabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="Disabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="UnknownState" xml:space="preserve"><value>Unknown status</value></data>
+  <data name="ScheduledLogon" xml:space="preserve"><value>Task Scheduler (sign-in)</value></data>
+  <data name="CannotVerifyProcess" xml:space="preserve"><value>This process could not be verified.</value></data>
+  <data name="ProcessChanged" xml:space="preserve"><value>The process or port owner has changed. Refresh and try again.</value></data>
+  <data name="ProcessEnding" xml:space="preserve"><value>Windows is ending the process. Refresh in a moment.</value></data>
+  <data name="ProcessUnavailable" xml:space="preserve"><value>Process information unavailable</value></data>
+  <data name="WindowsSystemProcess" xml:space="preserve"><value>Windows system process</value></data>
+  <data name="WindowsExplorer" xml:space="preserve"><value>Windows Explorer</value></data>
+  <data name="UnknownOrigin" xml:space="preserve"><value>Unknown source</value></data>
+  <data name="MissingStartupFile" xml:space="preserve"><value>Startup file not found</value></data>
+  <data name="MissingWorkingDirectory" xml:space="preserve"><value>Working directory not found</value></data>
+  <data name="NameValidation" xml:space="preserve"><value>Enter a name between 1 and 100 characters.</value></data>
+  <data name="TargetValidation" xml:space="preserve"><value>Choose the full path to an EXE, BAT, CMD, or PowerShell script.</value></data>
+  <data name="WorkingDirectoryValidation" xml:space="preserve"><value>Enter the full path to the working directory.</value></data>
+  <data name="DelayPortValidation" xml:space="preserve"><value>The delay must be 0–600 seconds and the port must be 1–65535.</value></data>
+  <data name="ArgumentsValidation" xml:space="preserve"><value>Arguments must be on one line and at most 6,000 characters.</value></data>
+  <data name="CmdLengthValidation" xml:space="preserve"><value>The batch file path and arguments exceed the CMD length limit.</value></data>
+  <data name="InvalidPortTableSize" xml:space="preserve"><value>Windows returned an invalid port table size.</value></data>
+  <data name="PortTableChanging" xml:space="preserve"><value>The port table is changing. Try refreshing.</value></data>
+  <data name="InvalidPortTable" xml:space="preserve"><value>Windows returned invalid port table data.</value></data>
+  <data name="TaskReadError" xml:space="preserve"><value>Could not read task {0:N}. {1}</value></data>
+  <data name="TaskAlreadyRunning" xml:space="preserve"><value>This task is already running.</value></data>
+  <data name="TaskNotFound" xml:space="preserve"><value>The task registered by StartupPorts could not be found.</value></data>
+  <data name="TaskConfigMissing" xml:space="preserve"><value>The task configuration is missing.</value></data>
+  <data name="TaskConfigInvalid" xml:space="preserve"><value>The task configuration is invalid.</value></data>
+  <data name="TaskTriggerChanged" xml:space="preserve"><value>The task’s sign-in trigger was changed.</value></data>
+  <data name="SecondsDuration" xml:space="preserve"><value>{0} s</value></data>
+  <data name="Queued" xml:space="preserve"><value>Queued</value></data>
+  <data name="Running" xml:space="preserve"><value>Running</value></data>
+  <data name="Starting" xml:space="preserve"><value>Starting</value></data>
+  <data name="NeverRun" xml:space="preserve"><value>Never run</value></data>
+  <data name="LaunchFailed" xml:space="preserve"><value>Launch failed</value></data>
+  <data name="TrackingInterrupted" xml:space="preserve"><value>Tracking interrupted</value></data>
+  <data name="Exited" xml:space="preserve"><value>Exited</value></data>
+  <data name="ExitCode" xml:space="preserve"><value>Exit code {0}</value></data>
+  <data name="Finished" xml:space="preserve"><value>Finished</value></data>
+  <data name="ListeningAndOccupied" xml:space="preserve"><value>Listening, also in use</value></data>
+  <data name="ListeningPartlyUnknown" xml:space="preserve"><value>Listening, some entries unknown</value></data>
+  <data name="Listening" xml:space="preserve"><value>Listening</value></data>
+  <data name="CannotConfirm" xml:space="preserve"><value>Unconfirmed</value></data>
+  <data name="OccupiedByOthers" xml:space="preserve"><value>In use by another process</value></data>
+  <data name="NotListening" xml:space="preserve"><value>Not listening</value></data>
+  <data name="WorkingDirectoryDetails" xml:space="preserve"><value>Working directory {0}</value></data>
+  <data name="LastLaunchDetails" xml:space="preserve"><value>Last launch {0:MM-dd HH:mm:ss}</value></data>
+  <data name="ActualListeners" xml:space="preserve"><value>Active listeners {0}</value></data>
+  <data name="OtherPortOwners" xml:space="preserve"><value>Other processes on the same port {0}</value></data>
+  <data name="ListSeparator" xml:space="preserve"><value>, </value></data>
+</root>

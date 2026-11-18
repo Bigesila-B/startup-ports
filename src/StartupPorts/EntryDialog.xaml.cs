@@ -1,6 +1,9 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Markup;
 using Microsoft.Win32;
+
+using static StartupPorts.UiText;
 
 namespace StartupPorts;
 
@@ -12,8 +15,9 @@ public partial class EntryDialog : Window
     internal EntryDialog(StartupEntry? existing, PortRow? port)
     {
         InitializeComponent();
+        Language = XmlLanguage.GetLanguage(LanguageCode);
         _id = existing?.Id ?? Guid.NewGuid();
-        Title = Heading.Text = existing is null ? "添加自启项" : "编辑自启项";
+        Title = Heading.Text = existing is null ? L("AddEntry") : L("EditEntry");
         if (existing is not null)
         {
             NameBox.Text = existing.Name;
@@ -42,7 +46,7 @@ public partial class EntryDialog : Window
         var picker = new OpenFileDialog
         {
             CheckFileExists = true,
-            Filter = "程序与脚本 (*.exe;*.bat;*.cmd;*.ps1)|*.exe;*.bat;*.cmd;*.ps1",
+            Filter = L("ExecutableFilter"),
         };
         if (picker.ShowDialog(this) != true)
             return;
@@ -65,12 +69,12 @@ public partial class EntryDialog : Window
         try
         {
             if (!int.TryParse(DelayBox.Text, out var delay))
-                throw new ArgumentException("请输入整数秒的启动延迟。");
+                throw new ArgumentException(L("DelayIntegerError"));
             int? port = null;
             if (!string.IsNullOrWhiteSpace(PortBox.Text))
             {
                 if (!int.TryParse(PortBox.Text, out var value))
-                    throw new ArgumentException("请输入整数端口。");
+                    throw new ArgumentException(L("PortIntegerError"));
                 port = value;
             }
             var target = TargetBox.Text.Trim();
