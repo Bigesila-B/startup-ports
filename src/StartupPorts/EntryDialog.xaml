@@ -3,9 +3,44 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="{DynamicResource StartupEntry}" Width="610" SizeToContent="Height" MaxHeight="{Binding Source={x:Static SystemParameters.WorkArea}, Path=Height}"
         ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
-        Background="{StaticResource Canvas}" FontFamily="Segoe UI, Microsoft YaHei UI" FontSize="13">
+        Background="{StaticResource Canvas}" FontFamily="Segoe UI, Microsoft YaHei UI" FontSize="13"
+        PreviewKeyDown="CloseHelpOnEscape">
+    <Window.Resources>
+        <Style TargetType="ToolTip">
+            <Setter Property="MaxWidth" Value="340"/>
+            <Setter Property="ContentTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" TextWrapping="Wrap"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="FieldHelpButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Content" Value="ⓘ"/>
+            <Setter Property="Width" Value="22"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="{StaticResource Accent}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="ToolTip" Value="{Binding Path=(AutomationProperties.HelpText), RelativeSource={RelativeSource Self}}"/>
+            <Setter Property="ToolTipService.InitialShowDelay" Value="350"/>
+            <Setter Property="ToolTipService.ShowDuration" Value="20000"/>
+            <EventSetter Event="Click" Handler="ShowFieldHelp"/>
+        </Style>
+    </Window.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="25">
+            <Popup x:Name="FieldHelpPopup" Placement="Bottom" VerticalOffset="6" StaysOpen="False" AllowsTransparency="True">
+                <Border Style="{StaticResource Card}" Padding="12,9" MaxWidth="340">
+                    <TextBlock x:Name="FieldHelpText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+                </Border>
+            </Popup>
             <TextBlock x:Name="Heading" Style="{StaticResource PageTitle}" FontSize="25" Margin="0,0,0,12"/>
             <TextBlock x:Name="ImportHint" Text="{DynamicResource ImportHint}"
                        Style="{StaticResource MutedText}" Visibility="Collapsed" TextWrapping="Wrap" Margin="0,0,0,10"/>
@@ -18,10 +53,20 @@
                         <Button DockPanel.Dock="Right" Content="{DynamicResource Browse}" Margin="8,0,0,0" Click="BrowseTarget"/>
                         <TextBox x:Name="TargetBox" AutomationProperties.Name="{DynamicResource StartupFile}"/>
                     </DockPanel>
-                    <Label Content="{DynamicResource OptionalArguments}" Target="{Binding ElementName=ArgumentsBox}" Margin="0,6,0,0"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <Label Content="{DynamicResource OptionalArguments}" Target="{Binding ElementName=ArgumentsBox}"/>
+                        <Button x:Name="ArgumentsHelpButton" Style="{StaticResource FieldHelpButton}"
+                                AutomationProperties.Name="{DynamicResource Arguments}"
+                                AutomationProperties.HelpText="{DynamicResource ArgumentsHelp}"/>
+                    </StackPanel>
                     <TextBox x:Name="ArgumentsBox" MaxLength="6000" AutomationProperties.Name="{DynamicResource Arguments}"
                              ToolTip="{DynamicResource ArgumentsHelp}"/>
-                    <Label Content="{DynamicResource WorkingDirectoryHint}" Target="{Binding ElementName=DirectoryBox}" Margin="0,6,0,0"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <Label Content="{DynamicResource WorkingDirectory}" Target="{Binding ElementName=DirectoryBox}"/>
+                        <Button x:Name="DirectoryHelpButton" Style="{StaticResource FieldHelpButton}"
+                                AutomationProperties.Name="{DynamicResource WorkingDirectory}"
+                                AutomationProperties.HelpText="{DynamicResource WorkingDirectoryHelp}"/>
+                    </StackPanel>
                     <DockPanel>
                         <Button DockPanel.Dock="Right" Content="{DynamicResource Browse}" Margin="8,0,0,0" Click="BrowseDirectory"/>
                         <TextBox x:Name="DirectoryBox" AutomationProperties.Name="{DynamicResource WorkingDirectory}"/>
@@ -32,11 +77,21 @@
                             <TextBox x:Name="DelayBox" Text="0" MaxLength="3" AutomationProperties.Name="{DynamicResource StartupDelay}"/>
                         </StackPanel>
                         <StackPanel Margin="0,0,8,0">
-                            <Label Content="{DynamicResource OptionalExpectedPort}" Target="{Binding ElementName=PortBox}"/>
+                            <DockPanel>
+                                <Button x:Name="PortHelpButton" DockPanel.Dock="Right" Style="{StaticResource FieldHelpButton}"
+                                        AutomationProperties.Name="{DynamicResource ExpectedPort}"
+                                        AutomationProperties.HelpText="{DynamicResource ExpectedPortHelp}"/>
+                                <Label Content="{DynamicResource OptionalExpectedPort}" Target="{Binding ElementName=PortBox}"/>
+                            </DockPanel>
                             <TextBox x:Name="PortBox" MaxLength="5" AutomationProperties.Name="{DynamicResource ExpectedPort}"/>
                         </StackPanel>
                         <StackPanel>
-                            <Label Content="{DynamicResource PortProtocol}" Target="{Binding ElementName=ProtocolBox}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="{DynamicResource PortProtocol}" Target="{Binding ElementName=ProtocolBox}"/>
+                                <Button x:Name="ProtocolHelpButton" Style="{StaticResource FieldHelpButton}"
+                                        AutomationProperties.Name="{DynamicResource PortProtocol}"
+                                        AutomationProperties.HelpText="{DynamicResource PortProtocolHelp}"/>
+                            </StackPanel>
                             <ComboBox x:Name="ProtocolBox" SelectedIndex="0" AutomationProperties.Name="{DynamicResource PortProtocol}">
                                 <ComboBoxItem Content="TCP"/>
                                 <ComboBoxItem Content="UDP"/>

@@ -12,7 +12,6 @@ internal static class UiText
 {
     internal const string Chinese = "zh-CN";
     internal const string English = "en-US";
-    private const string Preferences = @"HKEY_CURRENT_USER\Software\StartupPorts";
     private const string LanguageValue = "Language";
     private static readonly ResourceManager Strings = new("StartupPorts.Strings", typeof(UiText).Assembly);
     private static CultureInfo _culture = CultureInfo.GetCultureInfo(Chinese);
@@ -34,7 +33,7 @@ internal static class UiText
     public static void LoadPreference()
     {
         string? saved = null;
-        try { saved = Registry.GetValue(Preferences, LanguageValue, null) as string; }
+        try { saved = Registry.GetValue(AppIdentity.PreferencesKey, LanguageValue, null) as string; }
         catch (Exception ex) when (ex is UnauthorizedAccessException or SecurityException or IOException) { }
         SetLanguage(ResolveLanguage(saved, CultureInfo.CurrentUICulture));
     }
@@ -45,7 +44,8 @@ internal static class UiText
 
     public static void SetLanguage(string code) => Volatile.Write(ref _culture, CultureInfo.GetCultureInfo(code));
 
-    public static void SavePreference() => Registry.SetValue(Preferences, LanguageValue, LanguageCode, RegistryValueKind.String);
+    public static void SavePreference() =>
+        Registry.SetValue(AppIdentity.PreferencesKey, LanguageValue, LanguageCode, RegistryValueKind.String);
 
     public static void ApplyResources(Application app)
     {

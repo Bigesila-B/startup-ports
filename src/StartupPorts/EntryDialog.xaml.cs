@@ -1,5 +1,8 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Markup;
 using Microsoft.Win32;
 
@@ -39,6 +42,26 @@ public partial class EntryDialog : Window
             EnabledBox.IsChecked = false;
         }
         Loaded += (_, _) => NameBox.Focus();
+    }
+
+    private void ShowFieldHelp(object sender, RoutedEventArgs e)
+    {
+        var button = (Button)sender;
+        var wasOpen = FieldHelpPopup.IsOpen && ReferenceEquals(FieldHelpPopup.PlacementTarget, button);
+        FieldHelpPopup.IsOpen = false;
+        if (wasOpen)
+            return;
+        FieldHelpText.Text = AutomationProperties.GetHelpText(button);
+        FieldHelpPopup.PlacementTarget = button;
+        FieldHelpPopup.IsOpen = true;
+    }
+
+    private void CloseHelpOnEscape(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Escape || !FieldHelpPopup.IsOpen)
+            return;
+        FieldHelpPopup.IsOpen = false;
+        e.Handled = true;
     }
 
     private void BrowseTarget(object sender, RoutedEventArgs e)

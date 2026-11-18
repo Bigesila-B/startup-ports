@@ -20,6 +20,8 @@
 
 首次安装可选择目录。默认目录为 `%LOCALAPPDATA%\Programs\StartupPorts`。升级沿用已安装的目录并保留自启任务。部分实时归属会在下次受管启动后恢复。若要换目录，请备份自启项的配置，再卸载并按新路径重新安装。卸载会移除本工具登记的自启任务，已启动的目标程序继续运行。
 
+软件启动时会检查 GitHub 上的新版本。你也可以用左下角「检查更新」手动查询，或在这个窗口关闭自动检查。发现更新后可下载并校验安装包，再点「打开安装向导」自行完成升级。
+
 ## 从源码构建
 
 需要 Windows 11 x64 和 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)。生成安装包另需 [Inno Setup](https://jrsoftware.org/inno-setup/downloads)。

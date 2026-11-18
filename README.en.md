@@ -20,6 +20,8 @@ The monitor covers IPv4 and IPv6 TCP listeners and UDP bindings. Addresses for t
 
 Choose a folder during your first installation. The default is `%LOCALAPPDATA%\Programs\StartupPorts`. Updates reuse the existing folder and keep your startup tasks. Some port ownership details become available again the next time StartupPorts launches the item. To change folders, save your startup item settings, uninstall, and reinstall in the new folder. Uninstalling removes tasks registered by StartupPorts and leaves the apps it launched running.
 
+StartupPorts checks GitHub for new releases when it opens. Use **Check for updates** at the bottom left to check manually or turn off startup checks. When a release is available, download and verify its installer, then open the setup wizard to finish the update.
+
 ## Build from source
 
 You need Windows 11 x64 and the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0). To build the installer, also install [Inno Setup](https://jrsoftware.org/inno-setup/downloads).

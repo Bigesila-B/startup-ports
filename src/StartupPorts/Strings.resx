@@ -67,13 +67,15 @@
   <data name="Browse" xml:space="preserve"><value>Browse…</value></data>
   <data name="OptionalArguments" xml:space="preserve"><value>Arguments (optional)</value></data>
   <data name="Arguments" xml:space="preserve"><value>Arguments</value></data>
-  <data name="ArgumentsHelp" xml:space="preserve"><value>Use the program’s command-line syntax. Wrap arguments containing spaces in double quotes.</value></data>
-  <data name="WorkingDirectoryHint" xml:space="preserve"><value>Working directory (defaults to the folder containing the startup file)</value></data>
+  <data name="ArgumentsHelp" xml:space="preserve"><value>Pass startup options to the program. For example, use --port 3000 if the program supports it. Most desktop apps can leave this blank.</value></data>
+  <data name="WorkingDirectoryHelp" xml:space="preserve"><value>The program looks here for settings and files addressed by relative paths. If left blank, it uses the folder containing the startup file.</value></data>
   <data name="WorkingDirectory" xml:space="preserve"><value>Working directory</value></data>
   <data name="DelayInSeconds" xml:space="preserve"><value>Startup delay (seconds)</value></data>
   <data name="StartupDelay" xml:space="preserve"><value>Startup delay</value></data>
   <data name="OptionalExpectedPort" xml:space="preserve"><value>Expected port (optional)</value></data>
+  <data name="ExpectedPortHelp" xml:space="preserve"><value>Enter the port you expect the app to listen on, such as 3000. StartupPorts uses it to check whether the port is active or in use. The program’s own settings or arguments determine its actual port.</value></data>
   <data name="PortProtocol" xml:space="preserve"><value>Port protocol</value></data>
+  <data name="PortProtocolHelp" xml:space="preserve"><value>Used with the expected port. Local web services usually use TCP. Select UDP if you know the service uses it. Keep the default when the expected port is blank.</value></data>
   <data name="StartAtCurrentUserSignIn" xml:space="preserve"><value>Start when the current user signs in</value></data>
   <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Save" xml:space="preserve"><value>Save</value></data>
@@ -161,4 +163,27 @@
   <data name="ActualListeners" xml:space="preserve"><value>Active listeners {0}</value></data>
   <data name="OtherPortOwners" xml:space="preserve"><value>Other processes on the same port {0}</value></data>
   <data name="ListSeparator" xml:space="preserve"><value>, </value></data>
+  <data name="CheckForUpdates" xml:space="preserve"><value>Check for updates</value></data>
+  <data name="CheckNow" xml:space="preserve"><value>Check now</value></data>
+  <data name="CheckUpdatesAtStartup" xml:space="preserve"><value>Check for updates when the app opens</value></data>
+  <data name="CurrentUpdateVersion" xml:space="preserve"><value>Current version v{0}</value></data>
+  <data name="CheckingForUpdates" xml:space="preserve"><value>Checking GitHub for a newer release…</value></data>
+  <data name="NoNewUpdate" xml:space="preserve"><value>You’re up to date.</value></data>
+  <data name="NewUpdateFound" xml:space="preserve"><value>Version v{0} is available. Download and verify it, then open the setup wizard when you’re ready.</value></data>
+  <data name="UpdateAvailableButton" xml:space="preserve"><value>Update · v{0}</value></data>
+  <data name="UpdateDownloadUnavailable" xml:space="preserve"><value>Version v{0} is available. Visit GitHub to see the release and its downloads.</value></data>
+  <data name="ViewReleaseNotes" xml:space="preserve"><value>View release notes</value></data>
+  <data name="DownloadUpdate" xml:space="preserve"><value>Download update</value></data>
+  <data name="DownloadingUpdate" xml:space="preserve"><value>Downloading and verifying the installer…</value></data>
+  <data name="UpdateReady" xml:space="preserve"><value>The installer passed verification. Open the setup wizard to continue.</value></data>
+  <data name="OpenUpdateInstaller" xml:space="preserve"><value>Open setup wizard</value></data>
+  <data name="VerifyingUpdate" xml:space="preserve"><value>Rechecking the installer…</value></data>
+  <data name="UpdateCheckFailed" xml:space="preserve"><value>Could not check for updates. {0}</value></data>
+  <data name="UpdateDownloadFailed" xml:space="preserve"><value>Could not download the update. {0}</value></data>
+  <data name="UpdateOpenFailed" xml:space="preserve"><value>Could not open the setup wizard. {0}</value></data>
+  <data name="UpdateOpenNotesFailed" xml:space="preserve"><value>Could not open the release page. {0}</value></data>
+  <data name="UpdateSettingFailed" xml:space="preserve"><value>Could not save the update setting. {0}</value></data>
+  <data name="UpdateTimeout" xml:space="preserve"><value>The request timed out. You can try again.</value></data>
+  <data name="InvalidUpdateInfo" xml:space="preserve"><value>GitHub returned invalid update information.</value></data>
+  <data name="UpdateVerificationFailed" xml:space="preserve"><value>The installer did not pass verification. Download it again.</value></data>
 </root>

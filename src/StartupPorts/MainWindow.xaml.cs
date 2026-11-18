@@ -23,6 +23,10 @@ public partial class MainWindow : Window
     private readonly EventWaitHandle _maintenance = LaunchRunner.OpenQuiesceEvent();
     private readonly ObservableCollection<PortService> _ports = [];
     private readonly Dictionary<DataGridColumn, string> _columnHeaders;
+    private readonly GitHubUpdates _updates = new();
+    private readonly CancellationTokenSource _updateLifetime = new();
+    private Task<UpdateRelease?>? _updateCheck;
+    private UpdateRelease? _availableUpdate;
     private ICollectionView? _portView;
     private bool _readingWindowsStartup;
     private bool _working;
@@ -49,6 +53,8 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             _timer.Start();
+            if (UpdatePreferences.CheckAtStartup)
+                _ = CheckForUpdateOnStartupAsync();
             await RefreshAsync(wait: true);
         };
         _timer.Tick += async (_, _) =>
@@ -68,9 +74,39 @@ public partial class MainWindow : Window
         {
             _timer.Stop();
             _closed = true;
+            _updateLifetime.Cancel();
+            _updateLifetime.Dispose();
             _maintenance.Dispose();
         };
     }
+
+    private async Task CheckForUpdateOnStartupAsync()
+    {
+        try { await CheckForUpdatesAsync(); }
+        catch (Exception ex) when (UpdateDialog.IsUpdateError(ex)) { }
+    }
+
+    private async Task<UpdateRelease?> CheckForUpdatesAsync()
+    {
+        if (_closed)
+            return null;
+        if (_updateCheck is null || _updateCheck.IsCompleted)
+            _updateCheck = _updates.FindLatestAsync(GitHubUpdates.CurrentVersion, _updateLifetime.Token);
+
+        var latest = await _updateCheck;
+        if (!_closed)
+        {
+            _availableUpdate = latest;
+            UpdateButtonLabel();
+        }
+        return latest;
+    }
+
+    private void UpdateButtonLabel() => UpdatesButton.Content = _availableUpdate == null
+        ? L("CheckForUpdates") : L("UpdateAvailableButton", _availableUpdate.Version);
+
+    private void OpenUpdatesClicked(object sender, RoutedEventArgs e) =>
+        new UpdateDialog(_updates, CheckForUpdatesAsync, _availableUpdate) { Owner = this }.ShowDialog();
 
     private async Task RefreshAsync(bool wait)
     {
@@ -215,6 +251,7 @@ public partial class MainWindow : Window
         Language = XmlLanguage.GetLanguage(code);
         LanguageSelector.SelectedValue = code;
         UpdateColumnHeaders();
+        UpdateButtonLabel();
         UpdatePageLabels();
         ResetDiscovery();
         foreach (var row in _ports)
@@ -347,6 +384,7 @@ public partial class MainWindow : Window
         AddButton.IsEnabled = !_working;
         RefreshButton.IsEnabled = WindowsStartupNav.IsChecked == true ? !_readingWindowsStartup : !_working;
         LanguageSelector.IsEnabled = !_working && !_readingWindowsStartup;
+        UpdatesButton.IsEnabled = !_working;
         CopyButton.IsEnabled = port != null;
         OpenButton.IsEnabled = service?.BrowserAddress != null;
         FromPortButton.IsEnabled = !_working && port?.CanAdd == true;

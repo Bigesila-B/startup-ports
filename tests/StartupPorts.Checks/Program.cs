@@ -26,6 +26,9 @@ if (args is ["--mark", var marker, var markerValue])
 CheckNativePorts();
 CheckWindowsStartup();
 CheckProcessCell();
+await UpdateChecks.RunAsync();
+if (args is ["--github-update-check"])
+    await UpdateChecks.ProbeGitHubAsync();
 if (args is ["--scheduler", var launcher])
     await CheckScheduler(Path.GetFullPath(launcher));
 if (args is ["--installer", var installer])
@@ -244,12 +247,45 @@ static void CheckProcessCell()
                     Require((string)language.SelectedValue == code, $"The language selector did not select {code}.");
                     Require((string)header.Header == name, $"The startup column header did not update for {code}.");
                     var editor = new EntryDialog(null, null);
-                    try { Require(editor.Title == entryTitle, "The startup editor did not use the selected language."); }
+                    try
+                    {
+                        Require(editor.Title == entryTitle, "The startup editor did not use the selected language.");
+                        var popup = (System.Windows.Controls.Primitives.Popup)editor.FindName("FieldHelpPopup");
+                        var hint = (TextBlock)editor.FindName("FieldHelpText");
+                        foreach (var (buttonName, resourceKey) in new[]
+                        {
+                            ("ArgumentsHelpButton", "ArgumentsHelp"),
+                            ("DirectoryHelpButton", "WorkingDirectoryHelp"),
+                            ("PortHelpButton", "ExpectedPortHelp"),
+                            ("ProtocolHelpButton", "PortProtocolHelp"),
+                        })
+                        {
+                            var button = (Button)editor.FindName(buttonName);
+                            editor.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Background);
+                            var expectedHelp = UiText.L(resourceKey);
+                            Require((string?)button.ToolTip == expectedHelp, $"Missing tooltip for {buttonName} in {code}.");
+                            button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent, button));
+                            Require(hint.Text == expectedHelp && ReferenceEquals(popup.PlacementTarget, button),
+                                $"The help button did not show its explanation for {buttonName} in {code}.");
+                            popup.IsOpen = false;
+                        }
+                    }
                     finally { editor.Close(); }
                     Require(WindowsStartup.ApprovalState(BitConverter.GetBytes(2u)) == enabled,
                         "Startup status did not use the selected language.");
+                    var release = new UpdateRelease(new Version(8, 0, 0), new Uri("https://github.com/Bigesila-B/startup-ports/releases"),
+                        new UpdatePackage(new Uri("https://github.com/Bigesila-B/startup-ports/releases"), "", 1));
+                    var updates = new UpdateDialog(new GitHubUpdates(), () => Task.FromResult<UpdateRelease?>(release), release);
+                    try
+                    {
+                        Require(updates.Title == UiText.L("CheckForUpdates") &&
+                            ((Button)updates.FindName("DownloadButton")).Visibility == Visibility.Visible &&
+                            ((Button)updates.FindName("InstallerButton")).Visibility == Visibility.Collapsed,
+                            "The update dialog did not require a download before offering its installer.");
+                    }
+                    finally { updates.Close(); }
                 }
-                Console.WriteLine("Verified live English and Simplified Chinese switching in the main window and startup editor.");
+                Console.WriteLine("Verified English and Simplified Chinese switching and the four startup field hints.");
             }
             finally { window.Close(); }
         }

@@ -67,13 +67,15 @@
   <data name="Browse" xml:space="preserve"><value>浏览…</value></data>
   <data name="OptionalArguments" xml:space="preserve"><value>参数（可选）</value></data>
   <data name="Arguments" xml:space="preserve"><value>参数</value></data>
-  <data name="ArgumentsHelp" xml:space="preserve"><value>按该程序的命令行语法填写；带空格的参数可用双引号括起。</value></data>
-  <data name="WorkingDirectoryHint" xml:space="preserve"><value>工作目录（留空时使用启动文件所在目录）</value></data>
+  <data name="ArgumentsHelp" xml:space="preserve"><value>给程序传递启动选项。例如，程序支持 --port 3000 时，可以用它指定监听端口。普通桌面软件通常可留空。</value></data>
+  <data name="WorkingDirectoryHelp" xml:space="preserve"><value>程序从这个文件夹查找相对路径下的配置和文件。留空时使用启动文件所在的目录。</value></data>
   <data name="WorkingDirectory" xml:space="preserve"><value>工作目录</value></data>
   <data name="DelayInSeconds" xml:space="preserve"><value>启动延迟（秒）</value></data>
   <data name="StartupDelay" xml:space="preserve"><value>启动延迟</value></data>
   <data name="OptionalExpectedPort" xml:space="preserve"><value>预期端口（可选）</value></data>
+  <data name="ExpectedPortHelp" xml:space="preserve"><value>填写程序应监听的端口，例如 3000。StartupPorts 用它检查监听状态和占用情况。实际端口由程序自己的配置或参数决定。</value></data>
   <data name="PortProtocol" xml:space="preserve"><value>端口协议</value></data>
+  <data name="PortProtocolHelp" xml:space="preserve"><value>与预期端口搭配使用。本地网页服务通常选 TCP。确认程序使用 UDP 时再切换。预期端口留空时保留默认即可。</value></data>
   <data name="StartAtCurrentUserSignIn" xml:space="preserve"><value>在当前账户登录时启动</value></data>
   <data name="Cancel" xml:space="preserve"><value>取消</value></data>
   <data name="Save" xml:space="preserve"><value>保存</value></data>
@@ -161,4 +163,27 @@
   <data name="ActualListeners" xml:space="preserve"><value>实际监听 {0}</value></data>
   <data name="OtherPortOwners" xml:space="preserve"><value>同端口的其他进程 {0}</value></data>
   <data name="ListSeparator" xml:space="preserve"><value>、</value></data>
+  <data name="CheckForUpdates" xml:space="preserve"><value>检查更新</value></data>
+  <data name="CheckNow" xml:space="preserve"><value>立即检查</value></data>
+  <data name="CheckUpdatesAtStartup" xml:space="preserve"><value>启动软件时自动检查更新</value></data>
+  <data name="CurrentUpdateVersion" xml:space="preserve"><value>当前版本 v{0}</value></data>
+  <data name="CheckingForUpdates" xml:space="preserve"><value>正在检查 GitHub 上的新版本…</value></data>
+  <data name="NoNewUpdate" xml:space="preserve"><value>当前已是最新版本。</value></data>
+  <data name="NewUpdateFound" xml:space="preserve"><value>发现新版本 v{0}。下载校验完成后，可自行打开安装向导。</value></data>
+  <data name="UpdateAvailableButton" xml:space="preserve"><value>有更新 · v{0}</value></data>
+  <data name="UpdateDownloadUnavailable" xml:space="preserve"><value>发现 v{0}，此版本暂无可校验的安装包。请查看 GitHub 发布页。</value></data>
+  <data name="ViewReleaseNotes" xml:space="preserve"><value>查看发布说明</value></data>
+  <data name="DownloadUpdate" xml:space="preserve"><value>下载更新</value></data>
+  <data name="DownloadingUpdate" xml:space="preserve"><value>正在下载并校验安装包…</value></data>
+  <data name="UpdateReady" xml:space="preserve"><value>安装包已通过校验。点「打开安装向导」后可按提示升级。</value></data>
+  <data name="OpenUpdateInstaller" xml:space="preserve"><value>打开安装向导</value></data>
+  <data name="VerifyingUpdate" xml:space="preserve"><value>正在复核安装包…</value></data>
+  <data name="UpdateCheckFailed" xml:space="preserve"><value>检查更新失败。{0}</value></data>
+  <data name="UpdateDownloadFailed" xml:space="preserve"><value>下载更新失败。{0}</value></data>
+  <data name="UpdateOpenFailed" xml:space="preserve"><value>无法打开安装向导。{0}</value></data>
+  <data name="UpdateOpenNotesFailed" xml:space="preserve"><value>无法打开发布页。{0}</value></data>
+  <data name="UpdateSettingFailed" xml:space="preserve"><value>无法保存自动检查设置。{0}</value></data>
+  <data name="UpdateTimeout" xml:space="preserve"><value>请求超时，可以重试。</value></data>
+  <data name="InvalidUpdateInfo" xml:space="preserve"><value>GitHub 返回的更新信息无效。</value></data>
+  <data name="UpdateVerificationFailed" xml:space="preserve"><value>安装包校验失败，请重新下载。</value></data>
 </root>

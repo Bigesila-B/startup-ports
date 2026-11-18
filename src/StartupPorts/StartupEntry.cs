@@ -40,6 +40,7 @@ internal sealed record StartupEntry(
 
 internal static class AppIdentity
 {
+    public const string PreferencesKey = @"HKEY_CURRENT_USER\Software\StartupPorts";
     public static string Sid { get; } = GetSid();
     public static string DataDirectory { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
