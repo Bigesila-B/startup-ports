@@ -19,6 +19,8 @@ if (args is ["--mark", var marker, var markerValue])
 CheckNativePorts();
 if (args is ["--scheduler", var launcher])
     await CheckScheduler(Path.GetFullPath(launcher));
+if (args is ["--installer", var installer])
+    await CheckInstaller(Path.GetFullPath(installer));
 Console.WriteLine("StartupPorts checks passed.");
 
 static void Require(bool condition, string message)
@@ -58,6 +60,16 @@ static void CheckNativePorts()
     var updated = monitor.Capture(new Dictionary<Guid, RunInfo>());
     Require(updated.Rows.Any(row => row.Pid == Environment.ProcessId && row.Cpu >= 0), "CPU sample missing.");
 
+    var discovery = new PortDiscovery();
+    var existing = snapshot.Rows.First(row => row.Pid == Environment.ProcessId);
+    var replacement = existing with { Created = existing.Created + 1 };
+    Require(discovery.Update(new([existing], [])).Count == 0, "Initial discovery must be silent.");
+    Require(discovery.Update(new([replacement], [])).Single() == replacement, "Reused PID was not rediscovered.");
+    discovery.Dismiss();
+    Require(discovery.Update(new([replacement], [])).Count == 0, "Dismissed discovery reappeared.");
+    Require(discovery.Update(new([], ["Snapshot failed"])).Count == 0, "Partial table should reset discovery.");
+    Require(discovery.Update(new([replacement], [])).Count == 0, "Recovery must be silent.");
+
     using var client = new TcpClient();
     client.Connect((IPEndPoint)tcp4.LocalEndpoint);
     using var accepted = tcp4.AcceptTcpClient();
@@ -71,6 +83,9 @@ static async Task CheckScheduler(string launcher)
     var store = new TaskStore(launcher);
     var directory = Directory.CreateTempSubdirectory("StartupPorts checks ");
     var root = Directory.CreateDirectory(Path.Combine(directory.FullName, "测试 空格 & %"));
+    var fixtureDirectory = Directory.CreateDirectory(Path.Combine(directory.FullName, "fixture"));
+    var fixtureExecutable = CopyFixture(fixtureDirectory.FullName);
+    var ready = Path.Combine(root.FullName, "ready.txt");
     var ids = new List<Guid>();
     using var shell = new TcpListener(IPAddress.Loopback, 0);
     shell.Start();
@@ -142,11 +157,10 @@ static async Task CheckScheduler(string launcher)
             Require(File.ReadAllText(marker) == "test value|" + root.FullName, $"{suffix} arguments or working directory changed.");
         }
 
-        var ready = Path.Combine(root.FullName, "ready.txt");
         var wrapper = Path.Combine(root.FullName, "子进程.cmd");
         // Start the listener and exit the script. The child must remain associated with its startup item.
         File.WriteAllText(wrapper, $"@echo off\r\nstart \"\" /b \"%~2\" --listen {port} \"%~1\"\r\n");
-        var listener = Entry(wrapper, $"\"{ready}\" \"{Environment.ProcessPath}\"", port);
+        var listener = Entry(wrapper, $"\"{ready}\" \"{fixtureExecutable}\"", port);
         store.Save(listener, create: true);
 
         var monitor = new PortMonitor();
@@ -183,17 +197,35 @@ static async Task CheckScheduler(string launcher)
             PortMonitor.End(owned[0]);
             throw new Exception("Exited process guard failed.");
         }
-        catch (System.ComponentModel.Win32Exception) { }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException) { }
         Console.WriteLine("Windows task registration, each target type, job tracking, and process termination passed.");
     }
     finally
     {
+        File.WriteAllText(ready + ".stop", "");
+        if (File.Exists(ready) && int.TryParse(File.ReadAllText(ready), out var fixturePid))
+        {
+            try
+            {
+                using var fixture = Process.GetProcessById(fixturePid);
+                await fixture.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+            }
+            catch (Exception ex) when (ex is ArgumentException or TimeoutException) { }
+        }
         foreach (var id in ids)
         {
             try { store.Delete(id); } catch (InvalidOperationException) { }
             RunState.TryDelete(id);
         }
-        directory.Delete(recursive: true);
+        for (var attempt = 0; attempt < 15; attempt++)
+        {
+            try
+            {
+                directory.Delete(recursive: true);
+                break;
+            }
+            catch (IOException) when (attempt < 14) { await Task.Delay(200); }
+        }
     }
 }
 
@@ -202,6 +234,72 @@ static object TaskDefinition(Guid id)
     dynamic scheduler = Activator.CreateInstance(Type.GetTypeFromProgID("Schedule.Service")!)!;
     scheduler.Connect();
     return scheduler.GetFolder(@"\").GetTask($"StartupPorts-{AppIdentity.Sid}-{id:N}").Definition;
+}
+
+static async Task CheckInstaller(string installer)
+{
+    var installDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Programs", "StartupPorts");
+    var launcher = Path.Combine(installDirectory, "StartupPorts.exe");
+    var uninstaller = Path.Combine(installDirectory, "unins000.exe");
+    var store = new TaskStore(launcher);
+    Require(!Directory.Exists(installDirectory) && store.List().Entries.Count == 0,
+        "Installer checks require an account with no existing StartupPorts install or tasks.");
+
+    var temp = Directory.CreateTempSubdirectory("StartupPorts installer check ");
+    var ready = Path.Combine(temp.FullName, "ready.txt");
+    var id = Guid.NewGuid();
+    Process? fixture = null;
+    var setupFlags = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART";
+    try
+    {
+        await ExecuteInstaller(installer, setupFlags);
+        Require(File.Exists(launcher) && File.Exists(uninstaller), "Setup did not install to the per-user location.");
+        var target = CopyFixture(temp.FullName);
+        using var reservation = new TcpListener(IPAddress.Loopback, 0);
+        reservation.Start();
+        var port = ((IPEndPoint)reservation.LocalEndpoint).Port;
+        reservation.Stop();
+        var entry = new StartupEntry(id, "Installer test fixture", target, $"--listen {port} \"{ready}\"",
+            temp.FullName, 6, port, Protocol.Tcp, false);
+        store.Save(entry, create: true);
+        store.Run(id);
+        await Eventually(() => File.Exists(ready) && int.TryParse(File.ReadAllText(ready), out _), "Installed launcher failed.");
+        fixture = Process.GetProcessById(int.Parse(File.ReadAllText(ready)));
+
+        await ExecuteInstaller(installer, setupFlags);
+        Require(store.Get(id).Entry == entry && !fixture.HasExited,
+            "Updating changed the saved task or stopped its target.");
+        await ExecuteInstaller(uninstaller, setupFlags);
+        await Eventually(() => store.List().Entries.All(task => task.Entry.Id != id) && !File.Exists(launcher),
+            "Uninstall left a registered task or application binary.");
+        Require(!fixture.HasExited, "Uninstall stopped the target.");
+        Console.WriteLine("Per-user install, upgrade, and uninstall passed with a running target.");
+    }
+    finally
+    {
+        File.WriteAllText(ready + ".stop", "");
+        if (fixture != null)
+        {
+            using (fixture)
+                await fixture.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));
+        }
+        if (File.Exists(uninstaller))
+            await ExecuteInstaller(uninstaller, setupFlags);
+        temp.Delete(recursive: true);
+    }
+}
+
+static async Task ExecuteInstaller(string executable, string arguments)
+{
+    using var child = Process.Start(new ProcessStartInfo(executable, arguments)
+    {
+        UseShellExecute = false,
+        CreateNoWindow = true,
+        WindowStyle = ProcessWindowStyle.Hidden,
+    })!;
+    await child.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(90));
+    Require(child.ExitCode == 0, $"Setup exited with code {child.ExitCode}.");
 }
 
 static async Task Eventually(Func<bool> predicate, string message)
@@ -225,5 +323,14 @@ static async Task Listen(int port, string ready)
     tcp4.Start();
     tcp6.Start();
     File.WriteAllText(ready, Environment.ProcessId.ToString());
-    await Task.Delay(TimeSpan.FromSeconds(25));
+    var timeout = Stopwatch.StartNew();
+    while (timeout.Elapsed < TimeSpan.FromSeconds(25) && !File.Exists(ready + ".stop"))
+        await Task.Delay(100);
+}
+
+static string CopyFixture(string destination)
+{
+    foreach (var file in Directory.EnumerateFiles(AppContext.BaseDirectory))
+        File.Copy(file, Path.Combine(destination, Path.GetFileName(file)));
+    return Path.Combine(destination, Path.GetFileName(Environment.ProcessPath!));
 }

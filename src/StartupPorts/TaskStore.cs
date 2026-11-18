@@ -133,7 +133,7 @@ internal sealed class TaskStore
             if (IsOwned((object)task))
                 return task;
         }
-        catch (COMException ex) when (ex.HResult is FileNotFound or TaskNotFound) { }
+        catch (Exception ex) when (ex.HResult is FileNotFound or TaskNotFound) { }
         throw new InvalidOperationException("找不到由本工具登记的自启任务。");
     }
 
@@ -154,7 +154,9 @@ internal sealed class TaskStore
     {
         dynamic task = candidate;
         dynamic definition = task.Definition;
-        var stored = JsonSerializer.Deserialize<StoredEntry>((string)definition.Data);
+        if (definition.Data is not string data || data.Length == 0)
+            throw new InvalidDataException("任务配置缺失。");
+        var stored = JsonSerializer.Deserialize<StoredEntry>(data);
         if (stored is not { Version: 1 } || stored.Entry is not { } entry || entry.Id != id ||
             entry.Name is null || entry.Target is null || entry.WorkingDirectory is null || entry.Arguments is null)
             throw new InvalidDataException("任务配置格式无效。");

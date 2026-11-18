@@ -14,13 +14,12 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(2) };
     private readonly SemaphoreSlim _refreshGate = new(1);
     private readonly PortMonitor _monitor = new();
+    private readonly PortDiscovery _discovery = new();
     private readonly EventWaitHandle _maintenance = LaunchRunner.OpenQuiesceEvent();
-    private Dictionary<BoundEndpoint, long?>? _baseline;
     private IReadOnlyList<PortRow> _ports = [];
     private bool _working;
     private bool _closed;
     private int _discoveryGeneration;
-    private readonly HashSet<BoundEndpoint> _discovered = [];
 
     public MainWindow()
     {
@@ -162,40 +161,24 @@ public partial class MainWindow : Window
     private void ResetDiscovery()
     {
         _discoveryGeneration++;
-        _baseline = null;
-        ClearNotice();
+        _discovery.Reset();
+        Notice.Visibility = Visibility.Collapsed;
     }
 
     private void ClearNotice()
     {
-        _discovered.Clear();
+        _discovery.Dismiss();
         Notice.Visibility = Visibility.Collapsed;
     }
 
     private void UpdateDiscovery(PortSnapshot snapshot)
     {
-        if (snapshot.Issues.Count > 0)
-        {
-            ResetDiscovery();
+        var discovered = _discovery.Update(snapshot);
+        Notice.Visibility = discovered.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        if (discovered.Count == 0)
             return;
-        }
-        var now = snapshot.Rows.ToDictionary(row => row.Endpoint, row => row.Created);
-        if (_baseline is { } before)
-        {
-            _discovered.RemoveWhere(endpoint => !now.ContainsKey(endpoint));
-            foreach (var (endpoint, created) in now)
-                if (!before.TryGetValue(endpoint, out var prior) ||
-                    (prior.HasValue && created.HasValue && prior.Value != created.Value))
-                    _discovered.Add(endpoint);
-            Notice.Visibility = _discovered.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-            if (_discovered.Count > 0)
-            {
-                var names = snapshot.Rows.Where(row => _discovered.Contains(row.Endpoint))
-                    .Select(row => $"{row.Protocol} {row.Port}（{row.Process}）").Distinct().Take(5);
-                NoticeText.Text = $"发现 {_discovered.Count} 个新端点  ·  {string.Join("、", names)}";
-            }
-        }
-        _baseline = now;
+        var names = discovered.Select(row => $"{row.Protocol} {row.Port}（{row.Process}）").Distinct().Take(5);
+        NoticeText.Text = $"发现 {discovered.Count} 个新端点  ·  {string.Join("、", names)}";
     }
 
     private void FilterPorts()
