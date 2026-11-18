@@ -1,10 +1,12 @@
 # StartupPorts
 
+**简体中文** · [English](README.en.md)
+
 在 Windows 上设置登录自启，同时查看本机的端口占用、监听进程和启动来源。适合把桌面程序和本地开发服务放进同一张自启列表。
 
 ## 安装与使用
 
-从 [GitHub Releases](https://github.com/Bigesila-B/startup-ports/releases) 下载 Windows 11 x64 安装包 `StartupPorts-*-win-x64-setup.exe`。安装仅针对当前 Windows 账户，已包括 .NET 运行时。
+从 [GitHub Releases](https://github.com/Bigesila-B/startup-ports/releases) 下载 Windows 11 x64 安装包 `StartupPorts-*-win-x64-setup.exe`。安装仅针对当前 Windows 账户，已包括 .NET 运行时。桌面界面为简体中文。
 
 1. 在「自启管理」点击「添加自启项」，选择 `.exe`、`.bat`、`.cmd` 或 `.ps1`。按需填写参数、工作目录和登录后延迟。
 2. 如果程序会监听端口，填写预期端口和 TCP 或 UDP 协议。保存后可点击「立即运行」，在任务行查看预期端口是否由该项监听。选择任务行可查看实际端口或占用进程。
