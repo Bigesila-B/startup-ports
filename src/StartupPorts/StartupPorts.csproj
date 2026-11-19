@@ -5,7 +5,7 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>0.2.7</Version>
+    <Version>0.2.9</Version>
     <Product>StartupPorts</Product>
     <Description>Windows sign-in startup tasks and local port monitor</Description>
     <ApplicationIcon>Assets\StartupPorts.ico</ApplicationIcon>

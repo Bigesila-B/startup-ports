@@ -5,30 +5,6 @@
         Icon="Assets/StartupPorts.ico"
         WindowStartupLocation="CenterScreen" Background="{StaticResource Canvas}"
         FontFamily="Segoe UI, Microsoft YaHei UI" FontSize="13" UseLayoutRounding="True">
-    <Window.Resources>
-        <DataTemplate x:Key="ProgramIcon">
-            <Border Width="39" Height="39" CornerRadius="9" Background="#F3F6FC"
-                    BorderBrush="{StaticResource Line}" BorderThickness="1"
-                    HorizontalAlignment="Left" VerticalAlignment="Center">
-                <Grid>
-                    <Image x:Name="ProcessImage" Source="{Binding Icon}" Width="32" Height="32"
-                           AutomationProperties.Name="{Binding Name}" RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <Path x:Name="ProcessFallback" Visibility="Collapsed"
-                          Data="M 2,3 H 22 V 19 H 2 Z M 2,8 H 22 M 6,12 L 9,14 L 6,16 M 12,16 H 16"
-                          Width="23" Height="21" Stretch="Uniform" StrokeThickness="1.6"
-                          Stroke="{StaticResource Muted}" StrokeLineJoin="Round"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"
-                          ToolTip="{DynamicResource GenericProgramIcon}"/>
-                </Grid>
-            </Border>
-            <DataTemplate.Triggers>
-                <DataTrigger Binding="{Binding Icon}" Value="{x:Null}">
-                    <Setter TargetName="ProcessImage" Property="Visibility" Value="Collapsed"/>
-                    <Setter TargetName="ProcessFallback" Property="Visibility" Value="Visible"/>
-                </DataTrigger>
-            </DataTemplate.Triggers>
-        </DataTemplate>
-    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="190"/>
@@ -52,11 +28,20 @@
                         <TextBlock Text="StartupPorts" Margin="6,0,0,0" VerticalAlignment="Center" FontSize="17" FontWeight="DemiBold"/>
                     </StackPanel>
                     <RadioButton x:Name="StartupNav" Style="{StaticResource Nav}" Checked="Navigate" GroupName="Pages"
-                                 AutomationProperties.Name="{DynamicResource StartupManagement}">
+                                 AutomationProperties.Name="{DynamicResource StartupApps}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="M 8,1 L 8,8 M 4,3 A 7,7 0 1 0 12,3" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                   StrokeThickness="1.6" Width="17" Height="17" StrokeEndLineCap="Round" Margin="0,0,10,0"/>
-                            <TextBlock Text="{DynamicResource StartupManagement}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                            <TextBlock Text="{DynamicResource StartupApps}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="GroupsNav" Style="{StaticResource Nav}" Checked="Navigate" GroupName="Pages"
+                                 AutomationProperties.Name="{DynamicResource StartupGroups}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M 1,4 H 7 L 9,6 H 17 V 15 H 1 Z" Width="17" Height="17" Margin="0,0,10,0"
+                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                  StrokeThickness="1.6" StrokeLineJoin="Round"/>
+                            <TextBlock Text="{DynamicResource StartupGroups}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                         </StackPanel>
                     </RadioButton>
                     <RadioButton x:Name="WindowsStartupNav" Style="{StaticResource Nav}" Checked="Navigate" GroupName="Pages"
@@ -91,10 +76,12 @@
                 <Button DockPanel.Dock="Right" x:Name="RefreshButton" Content="{DynamicResource Refresh}" VerticalAlignment="Center" Click="RefreshClicked"/>
                 <Button DockPanel.Dock="Right" x:Name="AddButton" Content="{DynamicResource AddButton}" Margin="0,0,8,0"
                         Style="{StaticResource Primary}" VerticalAlignment="Center" Click="AddClicked"/>
+                <Button DockPanel.Dock="Right" x:Name="NewGroupButton" Content="{DynamicResource NewGroup}" Margin="0,0,8,0"
+                        Style="{StaticResource Primary}" VerticalAlignment="Center" Click="NewGroupClicked" Visibility="Collapsed"/>
                 <StackPanel>
-                    <TextBlock x:Name="PageTitle" Text="{DynamicResource StartupManagement}" Style="{StaticResource PageTitle}"/>
+                    <TextBlock x:Name="PageTitle" Text="{DynamicResource StartupApps}" Style="{StaticResource PageTitle}"/>
                     <TextBlock x:Name="PageDescription" Style="{StaticResource MutedText}" Margin="0,4,0,0"
-                               Text="{DynamicResource StartupInitialDescription}"/>
+                               Text="{DynamicResource StartupPageDescription}"/>
                 </StackPanel>
             </DockPanel>
             <Border x:Name="Notice" Grid.Row="1" Visibility="Collapsed" CornerRadius="8" Margin="0,0,0,12" Padding="12,7"
@@ -112,7 +99,7 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <DockPanel LastChildFill="False" Margin="12,11">
+                    <DockPanel LastChildFill="False" Margin="12,10">
                         <TextBlock x:Name="TaskCount" Text="{DynamicResource ReadingTasks}" VerticalAlignment="Center" Margin="3,0" Style="{StaticResource MutedText}"/>
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                             <Button x:Name="RunButton" Content="{DynamicResource RunNow}" Click="RunClicked" Margin="4,0"/>
@@ -122,10 +109,19 @@
                                     Foreground="{StaticResource Danger}"/>
                         </StackPanel>
                     </DockPanel>
-                    <DataGrid x:Name="StartupGrid" Grid.Row="1" SelectionChanged="SelectionChanged"
+                    <DataGrid x:Name="StartupGrid" Grid.Row="1" RowHeight="52" SelectionChanged="SelectionChanged"
                               MouseDoubleClick="EditDoubleClicked" AutomationProperties.Name="{DynamicResource StartupTasks}">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="1.25*" MinWidth="100" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTemplateColumn Header="Name" SortMemberPath="Name" Width="1.4*" MinWidth="155">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <DockPanel>
+                                            <ContentPresenter DockPanel.Dock="Left" Content="{Binding}" ContentTemplate="{StaticResource ProgramIcon}" Margin="0,0,10,0"/>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" Style="{StaticResource CellText}"/>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTextColumn Header="StartAtSignIn" Binding="{Binding Enabled}" Width="85" ElementStyle="{StaticResource CellText}"/>
                             <DataGridTextColumn Header="Delay" Binding="{Binding Delay}" Width="68" ElementStyle="{StaticResource CellText}"/>
                             <DataGridTextColumn Header="ExpectedPort" Binding="{Binding Port}" Width="1.4*" MinWidth="125" ElementStyle="{StaticResource CellText}"/>
@@ -143,6 +139,177 @@
                     </Border>
                 </Grid>
             </Border>
+            <Grid x:Name="GroupsPanel" Grid.Row="2" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.35*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*" MinWidth="323"/>
+                </Grid.ColumnDefinitions>
+                <Border x:Name="GroupCollection" Grid.ColumnSpan="3" Style="{StaticResource Card}" Background="#F8FAFE">
+                    <Grid>
+                        <ListBox x:Name="GroupsList" Margin="12" Background="Transparent" BorderThickness="0" Padding="0"
+                                 SelectionChanged="GroupSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="False"
+                                 AutomationProperties.Name="{DynamicResource StartupGroups}">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="AutomationProperties.Name" Value="{Binding Name}"/>
+                                    <Setter Property="ToolTip" Value="{Binding Tooltip}"/>
+                                    <Setter Property="Margin" Value="0,0,8,9"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border x:Name="GroupCard" Width="142" Padding="11" Background="White" CornerRadius="12"
+                                                        BorderBrush="{StaticResource Line}" BorderThickness="2">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="GroupCard" Property="BorderBrush" Value="#9AB0ED"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="GroupCard" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                                                        <Setter TargetName="GroupCard" Property="Background" Value="#F3F6FF"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsKeyboardFocused" Value="True">
+                                                        <Setter TargetName="GroupCard" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <Grid Height="78">
+                                            <Path Data="M 5,17 Q 5,11 11,11 H 38 Q 42,11 46,16 L 51,22 H 98 Q 105,22 105,29 V 69 Q 105,76 98,76 H 12 Q 5,76 5,69 Z"
+                                                  Stretch="Uniform" Width="107" Height="75" Fill="#E7EEFF" Stroke="#CEDAFA" StrokeThickness="1.3"/>
+                                            <ItemsControl ItemsSource="{Binding Preview}" Height="52" Width="56" Margin="0,9,0,0"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <UniformGrid Columns="2" Rows="2"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Viewbox Width="24" Height="24" ToolTip="{Binding Name}">
+                                                            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ProgramIcon}"/>
+                                                        </Viewbox>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <TextBlock Text="{Binding Overflow}" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                                       Foreground="{StaticResource Accent}" FontSize="10" FontWeight="SemiBold" Margin="0,0,14,8"/>
+                                        </Grid>
+                                        <TextBlock Text="{Binding Name}" Margin="0,8,0,2" FontSize="14" FontWeight="DemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding MemberCount}" FontSize="12" Style="{StaticResource MutedText}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <StackPanel x:Name="GroupsEmpty" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="Collapsed">
+                            <Path Data="M 2,6 H 14 L 18,10 H 34 V 29 H 2 Z" Stroke="#9AB0ED" StrokeThickness="1.8"
+                                  Fill="#E7EEFF" StrokeLineJoin="Round" Width="37" Height="35"/>
+                            <TextBlock Text="{DynamicResource NoGroups}" FontSize="17" FontWeight="DemiBold" HorizontalAlignment="Center" Margin="0,7,0,4"/>
+                            <TextBlock Text="{DynamicResource NoGroupsHint}" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource MutedText}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <Border x:Name="GroupDetails" Grid.Column="2" Style="{StaticResource Card}" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Margin="16,14,16,8">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" x:Name="EditGroupButton" Content="{DynamicResource EditGroup}"
+                                        Click="EditGroupClicked" Padding="10,4" MinHeight="30" Margin="8,0,0,0"/>
+                                <TextBlock x:Name="GroupTitle" VerticalAlignment="Center" FontSize="22" FontWeight="DemiBold"
+                                           TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                            </DockPanel>
+                            <TextBlock x:Name="GroupSummary" Style="{StaticResource MutedText}" Margin="0,3,0,11"/>
+                            <Button x:Name="RunGroupButton" Content="{DynamicResource RunGroup}" Click="RunGroupClicked" Style="{StaticResource Primary}"/>
+                            <Border Margin="0,9,0,0" Padding="10,7" Background="#F3F6FD" CornerRadius="8">
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource GroupSignIn}" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                    <UniformGrid Columns="2">
+                                        <Button x:Name="EnableGroupButton" Content="{DynamicResource EnableGroup}" Click="EnableGroupClicked" Margin="0,0,3,0" Padding="7,4" MinHeight="29"/>
+                                        <Button x:Name="DisableGroupButton" Content="{DynamicResource DisableGroup}" Click="DisableGroupClicked" Margin="3,0,0,0" Padding="7,4" MinHeight="29"/>
+                                    </UniformGrid>
+                                    <TextBlock Text="{DynamicResource GroupSharedHint}" Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                        <Grid Grid.Row="1" Margin="16,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="{DynamicResource GroupChoices}" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <ListBox x:Name="GroupMembersList" Grid.Row="1" BorderThickness="0" Padding="0" Background="Transparent"
+                                     Focusable="False" IsTabStop="False" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                     AutomationProperties.Name="{DynamicResource GroupChoices}">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="Focusable" Value="False"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ListBoxItem">
+                                                    <Border Padding="0,5" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
+                                                        <ContentPresenter/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel>
+                                            <Border x:Name="MemberBadge" DockPanel.Dock="Right" Background="#F0F3F8" Padding="7,2" CornerRadius="8" VerticalAlignment="Center" Margin="6,0,0,0">
+                                                <TextBlock x:Name="MemberStatus" Text="{DynamicResource Disabled}" Style="{StaticResource MutedText}" FontSize="11"/>
+                                            </Border>
+                                            <Viewbox DockPanel.Dock="Left" Width="28" Height="28" Margin="0,0,8,0">
+                                                <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ProgramIcon}"/>
+                                            </Viewbox>
+                                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                                       ToolTip="{Binding Entry.Target}"/>
+                                        </DockPanel>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Entry.Enabled}" Value="True">
+                                                <Setter TargetName="MemberBadge" Property="Background" Value="#E8F5EF"/>
+                                                <Setter TargetName="MemberStatus" Property="Foreground" Value="#226341"/>
+                                                <Setter TargetName="MemberStatus" Property="Text" Value="{DynamicResource Enabled}"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <TextBlock x:Name="GroupMembersEmpty" Grid.Row="1" Text="{DynamicResource EmptyGroup}" Style="{StaticResource MutedText}"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False"/>
+                        </Grid>
+                        <DockPanel Grid.Row="2" Margin="16,8,16,12">
+                            <Button x:Name="DeleteGroupButton" DockPanel.Dock="Right" Content="{DynamicResource DeleteGroup}"
+                                    Click="DeleteGroupClicked" Foreground="{StaticResource Danger}" Padding="10,4" MinHeight="30"/>
+                            <Button x:Name="AddGroupItemButton" DockPanel.Dock="Left" Content="{DynamicResource AddGroupItem}"
+                                    Click="AddGroupItemClicked" Padding="10,4" MinHeight="30"/>
+                            <Border/>
+                        </DockPanel>
+                    </Grid>
+                </Border>
+            </Grid>
             <Border x:Name="WindowsStartupPanel" Style="{StaticResource Card}" Grid.Row="2" Visibility="Collapsed">
                 <Grid>
                     <Grid.RowDefinitions>

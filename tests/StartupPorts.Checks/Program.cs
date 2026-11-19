@@ -26,6 +26,7 @@ if (args is ["--mark", var marker, var markerValue])
 CheckNativePorts();
 CheckWindowsStartup();
 CheckProcessCell();
+GroupChecks.CheckStorage();
 await UpdateChecks.RunAsync();
 if (args is ["--github-update-check"])
     await UpdateChecks.ProbeGitHubAsync();
@@ -286,6 +287,7 @@ static void CheckProcessCell()
                     finally { updates.Close(); }
                 }
                 Console.WriteLine("Verified English and Simplified Chinese switching and the four startup field hints.");
+                GroupChecks.CheckWindow(window, explorer, known.Icon!);
             }
             finally { window.Close(); }
         }
@@ -376,6 +378,19 @@ static async Task CheckScheduler(string launcher)
             Require(run.ExitCode == 0, $"Launch {suffix} failed: {run.Error}, exit {run.ExitCode}");
             Require(File.ReadAllText(marker) == "test value|" + root.FullName, $"{suffix} arguments or working directory changed.");
         }
+
+        var groupRows = ids.Take(2).Select(id => new StartupRow(store.Get(id), null, new([], []), RunTracking.None)).ToArray();
+        var missing = groupRows[0] with { Task = new(groupRows[0].Entry with { Id = Guid.NewGuid(), Name = "Missing fixture" }, 3) };
+        var errors = MainWindow.ApplyGroupAction(store, [missing, .. groupRows], enable: true);
+        Require(errors.Count == 1 && errors[0].Contains(missing.Name) && groupRows.All(row => store.Get(row.Entry.Id).Entry.Enabled),
+            "An unavailable member prevented the rest of the group from enabling.");
+        Require(MainWindow.ApplyGroupAction(store, groupRows, enable: false).Count == 0 &&
+            groupRows.All(row => !store.Get(row.Entry.Id).Entry.Enabled), "The group could not disable its members.");
+        var markers = new[] { Path.Combine(root.FullName, "exe.txt"), Path.Combine(root.FullName, "bat.txt") };
+        foreach (var marker in markers)
+            File.Delete(marker);
+        Require(MainWindow.ApplyGroupAction(store, groupRows, enable: null).Count == 0, "The group could not launch its members.");
+        await Eventually(() => markers.All(File.Exists), "Group launch did not run both the executable and the batch script.");
 
         var wrapper = Path.Combine(root.FullName, "子进程.cmd");
         // Start the listener and exit the script. The child must remain associated with its startup item.

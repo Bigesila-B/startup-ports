@@ -40,7 +40,13 @@
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"
-                                          TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                          TextElement.Foreground="{TemplateBinding Foreground}">
+                            <ContentPresenter.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -164,4 +170,26 @@
         <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
         <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
     </Style>
+    <DataTemplate x:Key="ProgramIcon">
+        <Border Width="39" Height="39" CornerRadius="9" Background="#F3F6FC"
+                BorderBrush="{StaticResource Line}" BorderThickness="1"
+                HorizontalAlignment="Left" VerticalAlignment="Center">
+            <Grid>
+                <Image x:Name="ProcessImage" Source="{Binding Icon}" Width="32" Height="32"
+                       AutomationProperties.Name="{Binding Name}" RenderOptions.BitmapScalingMode="HighQuality"/>
+                <Path x:Name="ProcessFallback" Visibility="Collapsed"
+                      Data="M 2,3 H 22 V 19 H 2 Z M 2,8 H 22 M 6,12 L 9,14 L 6,16 M 12,16 H 16"
+                      Width="23" Height="21" Stretch="Uniform" StrokeThickness="1.6"
+                      Stroke="{StaticResource Muted}" StrokeLineJoin="Round"
+                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                      ToolTip="{DynamicResource GenericProgramIcon}"/>
+            </Grid>
+        </Border>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Icon}" Value="{x:Null}">
+                <Setter TargetName="ProcessImage" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="ProcessFallback" Property="Visibility" Value="Visible"/>
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
 </ResourceDictionary>

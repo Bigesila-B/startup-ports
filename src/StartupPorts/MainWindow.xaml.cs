@@ -125,15 +125,7 @@ public partial class MainWindow : Window
             var state = await Task.Run(Capture);
             if (_closed || WindowState == WindowState.Minimized || WindowsStartupNav.IsChecked == true || language != LanguageCode)
                 return;
-            if (state.Tasks != null)
-            {
-                var id = (StartupGrid.SelectedItem as StartupRow)?.Entry.Id;
-                Replace(StartupGrid, state.Tasks, state.Tasks.FirstOrDefault(task => task.Entry.Id == id));
-                StartupEmpty.Visibility = state.Tasks.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-                TaskCount.Text = L("TaskCount", state.Tasks.Count, state.Tasks.Count(task => task.Entry.Enabled));
-            }
-            else
-                TaskCount.Text = L("TasksUnavailable");
+            UpdateStartupGroups(state.Tasks, state.Groups);
 
             UpdatePorts(state.Services);
             if (PortsNav.IsChecked == true && generation == _discoveryGeneration)
@@ -154,7 +146,8 @@ public partial class MainWindow : Window
         finally { _refreshGate.Release(); }
     }
 
-    private (IReadOnlyList<StartupRow>? Tasks, PortSnapshot Ports, IReadOnlyList<PortService> Services, IReadOnlyList<string> Issues) Capture()
+    private (IReadOnlyList<StartupRow>? Tasks, IReadOnlyList<StartupGroupCard>? Groups, PortSnapshot Ports,
+        IReadOnlyList<PortService> Services, IReadOnlyList<string> Issues) Capture()
     {
         TaskList? tasks = null;
         var issues = new List<string>();
@@ -177,10 +170,10 @@ public partial class MainWindow : Window
         var rows = tasks?.Entries.Select(task =>
         {
             runs.TryGetValue(task.Entry.Id, out var run);
-            return new StartupRow(task, run, ports, ReadTracking(run));
+            return new StartupRow(task, run, ports, ReadTracking(run)) { Icon = ReadStartupIcon(task.Entry) };
         }).ToArray();
         var names = tasks?.Entries.ToDictionary(task => task.Entry.Id, task => task.Entry.Name) ?? [];
-        return (rows, ports, PortService.Group(ports, names, _icons), issues);
+        return (rows, rows == null ? null : CaptureGroups(rows, issues), ports, PortService.Group(ports, names, _icons), issues);
     }
 
     private static RunTracking ReadTracking(RunInfo? run)
@@ -205,10 +198,14 @@ public partial class MainWindow : Window
             return;
         var showPorts = ReferenceEquals(sender, PortsNav);
         var showWindows = ReferenceEquals(sender, WindowsStartupNav);
-        StartupPanel.Visibility = showPorts || showWindows ? Visibility.Collapsed : Visibility.Visible;
+        var showGroups = ReferenceEquals(sender, GroupsNav);
+        var showStartup = ReferenceEquals(sender, StartupNav);
+        StartupPanel.Visibility = showStartup ? Visibility.Visible : Visibility.Collapsed;
+        GroupsPanel.Visibility = showGroups ? Visibility.Visible : Visibility.Collapsed;
         WindowsStartupPanel.Visibility = showWindows ? Visibility.Visible : Visibility.Collapsed;
         PortsPanel.Visibility = showPorts ? Visibility.Visible : Visibility.Collapsed;
-        AddButton.Visibility = showPorts || showWindows ? Visibility.Collapsed : Visibility.Visible;
+        AddButton.Visibility = showStartup ? Visibility.Visible : Visibility.Collapsed;
+        NewGroupButton.Visibility = showGroups ? Visibility.Visible : Visibility.Collapsed;
         UpdatePageLabels();
         ResetDiscovery();
         UpdateControls();
@@ -222,9 +219,10 @@ public partial class MainWindow : Window
     {
         var showPorts = PortsNav.IsChecked == true;
         var showWindows = WindowsStartupNav.IsChecked == true;
-        PageTitle.Text = L(showPorts ? "PortMonitor" : showWindows ? "WindowsStartupItems" : "StartupManagement");
+        var showGroups = GroupsNav.IsChecked == true;
+        PageTitle.Text = L(showPorts ? "PortMonitor" : showWindows ? "WindowsStartupItems" : showGroups ? "StartupGroups" : "StartupApps");
         PageDescription.Text = L(showPorts ? "PortMonitorDescription" : showWindows
-            ? "WindowsStartupDescription" : "StartupPageDescription");
+            ? "WindowsStartupDescription" : showGroups ? "GroupsPageDescription" : "StartupPageDescription");
     }
 
     private async void LanguageChanged(object sender, SelectionChangedEventArgs e)
@@ -253,6 +251,7 @@ public partial class MainWindow : Window
         UpdateColumnHeaders();
         UpdateButtonLabel();
         UpdatePageLabels();
+        ShowGroupDetails();
         ResetDiscovery();
         foreach (var row in _ports)
             row.NotifyDisplayChanged();
@@ -385,6 +384,7 @@ public partial class MainWindow : Window
         RefreshButton.IsEnabled = WindowsStartupNav.IsChecked == true ? !_readingWindowsStartup : !_working;
         LanguageSelector.IsEnabled = !_working && !_readingWindowsStartup;
         UpdatesButton.IsEnabled = !_working;
+        UpdateGroupControls();
         CopyButton.IsEnabled = port != null;
         OpenButton.IsEnabled = service?.BrowserAddress != null;
         FromPortButton.IsEnabled = !_working && port?.CanAdd == true;
@@ -419,13 +419,25 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task Edit(StartupRow? row = null, PortRow? port = null)
+    private async Task Edit(StartupRow? row = null, PortRow? port = null, StartupGroup? group = null)
     {
         if (_working)
             return;
         var dialog = new EntryDialog(row?.Entry, port) { Owner = this };
         if (dialog.ShowDialog() == true && dialog.Entry is { } entry)
-            await Change(() => new TaskStore().Save(entry, create: row == null));
+        {
+            await Change(() =>
+            {
+                new TaskStore().Save(entry, create: row == null);
+                if (group == null)
+                    return;
+                try { _groups.AddMember(group.Id, entry.Id); }
+                catch (Exception ex) when (IsExpected(ex))
+                {
+                    throw new InvalidOperationException(L("GroupAddMemberFailed", group.Name, ex.Message), ex);
+                }
+            });
+        }
     }
 
     private async void AddClicked(object sender, RoutedEventArgs e) => await Edit();
@@ -529,6 +541,6 @@ public partial class MainWindow : Window
         MessageBox.Show(this, ex.Message, "StartupPorts", MessageBoxButton.OK, MessageBoxImage.Error);
 
     private static bool IsExpected(Exception ex) => ex is ArgumentException or InvalidOperationException or
-        UnauthorizedAccessException or System.IO.IOException or Win32Exception or COMException or
+        UnauthorizedAccessException or System.IO.IOException or System.IO.InvalidDataException or Win32Exception or COMException or
         System.Text.Json.JsonException or System.Security.SecurityException;
 }

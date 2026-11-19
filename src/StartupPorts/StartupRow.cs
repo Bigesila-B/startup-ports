@@ -1,3 +1,5 @@
+using System.Windows.Media.Imaging;
+
 using static StartupPorts.UiText;
 
 namespace StartupPorts;
@@ -7,6 +9,7 @@ internal enum RunTracking { None, Root, Group }
 internal sealed record StartupRow(ScheduledEntry Task, RunInfo? Run, PortSnapshot Ports, RunTracking Tracking)
 {
     public StartupEntry Entry => Task.Entry;
+    public BitmapSource? Icon { get; init; }
     public string Name => Entry.Name;
     public string Enabled => Entry.Enabled ? L("Enabled") : L("Disabled");
     public string Delay => L("SecondsDuration", Entry.DelaySeconds);

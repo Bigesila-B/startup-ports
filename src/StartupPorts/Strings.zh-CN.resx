@@ -5,7 +5,7 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
   <data name="GenericProgramIcon" xml:space="preserve"><value>通用程序图标</value></data>
-  <data name="StartupManagement" xml:space="preserve"><value>自启管理</value></data>
+  <data name="StartupApps" xml:space="preserve"><value>启动程序</value></data>
   <data name="WindowsStartupItems" xml:space="preserve"><value>Windows 启动项</value></data>
   <data name="PortMonitor" xml:space="preserve"><value>端口监控</value></data>
   <data name="Refresh" xml:space="preserve"><value>刷新</value></data>
@@ -13,8 +13,7 @@
   <data name="AddEntry" xml:space="preserve"><value>添加自启项</value></data>
   <data name="EditEntry" xml:space="preserve"><value>编辑自启项</value></data>
   <data name="StartupEntry" xml:space="preserve"><value>自启项</value></data>
-  <data name="StartupPageDescription" xml:space="preserve"><value>管理你在 StartupPorts 中添加的登录自启任务。</value></data>
-  <data name="StartupInitialDescription" xml:space="preserve"><value>选择当前 Windows 账户登录后要运行的程序和脚本。</value></data>
+  <data name="StartupPageDescription" xml:space="preserve"><value>逐个管理程序和脚本的运行与登录自启设置。</value></data>
   <data name="WindowsStartupDescription" xml:space="preserve"><value>查看注册表、启动文件夹与任务计划程序中的登录启动项。</value></data>
   <data name="PortMonitorDescription" xml:space="preserve"><value>查看本机端口及其占用程序。</value></data>
   <data name="Close" xml:space="preserve"><value>关闭</value></data>
@@ -186,4 +185,32 @@
   <data name="UpdateTimeout" xml:space="preserve"><value>请求超时，可以重试。</value></data>
   <data name="InvalidUpdateInfo" xml:space="preserve"><value>GitHub 返回的更新信息无效。</value></data>
   <data name="UpdateVerificationFailed" xml:space="preserve"><value>安装包校验失败，请重新下载。</value></data>
+  <data name="StartupGroups" xml:space="preserve"><value>自启分组</value></data>
+  <data name="NewGroup" xml:space="preserve"><value>新建分组</value></data>
+  <data name="EditGroup" xml:space="preserve"><value>编辑分组</value></data>
+  <data name="DeleteGroup" xml:space="preserve"><value>删除分组</value></data>
+  <data name="RunGroup" xml:space="preserve"><value>立即运行组内程序</value></data>
+  <data name="EnableGroup" xml:space="preserve"><value>全部开启</value></data>
+  <data name="DisableGroup" xml:space="preserve"><value>全部关闭</value></data>
+  <data name="GroupName" xml:space="preserve"><value>分组名称</value></data>
+  <data name="GroupChoices" xml:space="preserve"><value>组内程序和脚本</value></data>
+  <data name="GroupChoicesHint" xml:space="preserve"><value>勾选要放进此分组的程序和脚本。</value></data>
+  <data name="GroupNameRequired" xml:space="preserve"><value>请输入分组名称。</value></data>
+  <data name="GroupNameExists" xml:space="preserve"><value>已有同名分组。</value></data>
+  <data name="GroupNotFound" xml:space="preserve"><value>找不到这个分组。</value></data>
+  <data name="GroupsBusy" xml:space="preserve"><value>另一个 StartupPorts 窗口正在保存分组，请重试。</value></data>
+  <data name="InvalidGroups" xml:space="preserve"><value>保存的分组数据格式无效。</value></data>
+  <data name="GroupsReadError" xml:space="preserve"><value>无法读取自启分组。{0}</value></data>
+  <data name="GroupActionIncomplete" xml:space="preserve"><value>以下组内项目未能完成操作。&#10;&#10;{0}</value></data>
+  <data name="GroupAddMemberFailed" xml:space="preserve"><value>自启项已保存，加入「{0}」分组失败。{1}</value></data>
+  <data name="EmptyGroup" xml:space="preserve"><value>这个分组还没有成员</value></data>
+  <data name="GroupsPageDescription" xml:space="preserve"><value>将程序和脚本归组，一次操作多个项目。</value></data>
+  <data name="GroupMemberCount" xml:space="preserve"><value>{0} 个成员</value></data>
+  <data name="GroupSummary" xml:space="preserve"><value>{0} 个成员 · {1} 个已开启登录自启</value></data>
+  <data name="GroupSignIn" xml:space="preserve"><value>组内登录自启</value></data>
+  <data name="GroupSharedHint" xml:space="preserve"><value>这里的改动会同步到「启动程序」和包含这些成员的其他分组。</value></data>
+  <data name="NoGroups" xml:space="preserve"><value>还没有自启分组</value></data>
+  <data name="NoGroupsHint" xml:space="preserve"><value>新建分组后，可以把常用的程序和脚本放在一起。</value></data>
+  <data name="AddGroupItem" xml:space="preserve"><value>添加程序或脚本</value></data>
+  <data name="DeleteGroupPrompt" xml:space="preserve"><value>删除「{0}」分组？组内成员仍可在「启动程序」中管理。</value></data>
 </root>

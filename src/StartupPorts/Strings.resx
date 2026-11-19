@@ -5,7 +5,7 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
   <data name="GenericProgramIcon" xml:space="preserve"><value>Generic program icon</value></data>
-  <data name="StartupManagement" xml:space="preserve"><value>Startup Tasks</value></data>
+  <data name="StartupApps" xml:space="preserve"><value>Startup apps</value></data>
   <data name="WindowsStartupItems" xml:space="preserve"><value>Windows Startup</value></data>
   <data name="PortMonitor" xml:space="preserve"><value>Port Monitor</value></data>
   <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
@@ -13,8 +13,7 @@
   <data name="AddEntry" xml:space="preserve"><value>Add startup item</value></data>
   <data name="EditEntry" xml:space="preserve"><value>Edit startup item</value></data>
   <data name="StartupEntry" xml:space="preserve"><value>Startup item</value></data>
-  <data name="StartupPageDescription" xml:space="preserve"><value>Manage the apps and scripts you’ve set to run at sign-in.</value></data>
-  <data name="StartupInitialDescription" xml:space="preserve"><value>Choose apps and scripts to run when you sign in to Windows.</value></data>
+  <data name="StartupPageDescription" xml:space="preserve"><value>Manage sign-in and run settings for individual apps and scripts.</value></data>
   <data name="WindowsStartupDescription" xml:space="preserve"><value>See sign-in items from the registry, Startup folders, and Task Scheduler.</value></data>
   <data name="PortMonitorDescription" xml:space="preserve"><value>See local ports and the processes using them.</value></data>
   <data name="Close" xml:space="preserve"><value>Close</value></data>
@@ -186,4 +185,32 @@
   <data name="UpdateTimeout" xml:space="preserve"><value>The request timed out. You can try again.</value></data>
   <data name="InvalidUpdateInfo" xml:space="preserve"><value>GitHub returned invalid update information.</value></data>
   <data name="UpdateVerificationFailed" xml:space="preserve"><value>The installer did not pass verification. Download it again.</value></data>
+  <data name="StartupGroups" xml:space="preserve"><value>Startup groups</value></data>
+  <data name="NewGroup" xml:space="preserve"><value>New group</value></data>
+  <data name="EditGroup" xml:space="preserve"><value>Edit group</value></data>
+  <data name="DeleteGroup" xml:space="preserve"><value>Delete group</value></data>
+  <data name="RunGroup" xml:space="preserve"><value>Run group now</value></data>
+  <data name="EnableGroup" xml:space="preserve"><value>Enable all</value></data>
+  <data name="DisableGroup" xml:space="preserve"><value>Disable all</value></data>
+  <data name="GroupName" xml:space="preserve"><value>Group name</value></data>
+  <data name="GroupChoices" xml:space="preserve"><value>Group members</value></data>
+  <data name="GroupChoicesHint" xml:space="preserve"><value>Select the apps and scripts you want in this group.</value></data>
+  <data name="GroupNameRequired" xml:space="preserve"><value>Enter a group name.</value></data>
+  <data name="GroupNameExists" xml:space="preserve"><value>A group with this name already exists.</value></data>
+  <data name="GroupNotFound" xml:space="preserve"><value>This group could not be found.</value></data>
+  <data name="GroupsBusy" xml:space="preserve"><value>Another StartupPorts window is saving groups. Try again.</value></data>
+  <data name="InvalidGroups" xml:space="preserve"><value>The saved group data is invalid.</value></data>
+  <data name="GroupsReadError" xml:space="preserve"><value>Could not read startup groups. {0}</value></data>
+  <data name="GroupActionIncomplete" xml:space="preserve"><value>Some group members could not complete the action.&#10;&#10;{0}</value></data>
+  <data name="GroupAddMemberFailed" xml:space="preserve"><value>The startup item was saved. Could not add it to “{0}”. {1}</value></data>
+  <data name="EmptyGroup" xml:space="preserve"><value>This group is empty</value></data>
+  <data name="GroupsPageDescription" xml:space="preserve"><value>Organize your apps and scripts and manage them together.</value></data>
+  <data name="GroupMemberCount" xml:space="preserve"><value>{0} in group</value></data>
+  <data name="GroupSummary" xml:space="preserve"><value>{0} items · {1} start at sign-in</value></data>
+  <data name="GroupSignIn" xml:space="preserve"><value>Run group at sign-in</value></data>
+  <data name="GroupSharedHint" xml:space="preserve"><value>Changes also appear in Startup apps and any other groups that contain these items.</value></data>
+  <data name="NoGroups" xml:space="preserve"><value>No groups yet</value></data>
+  <data name="NoGroupsHint" xml:space="preserve"><value>Create a group to put apps and scripts together.</value></data>
+  <data name="AddGroupItem" xml:space="preserve"><value>Add app or script</value></data>
+  <data name="DeleteGroupPrompt" xml:space="preserve"><value>Delete “{0}”? You can still manage its members under Startup apps.</value></data>
 </root>
