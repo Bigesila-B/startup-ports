@@ -14,7 +14,7 @@
   <data name="EditEntry" xml:space="preserve"><value>编辑自启项</value></data>
   <data name="StartupEntry" xml:space="preserve"><value>自启项</value></data>
   <data name="StartupPageDescription" xml:space="preserve"><value>逐个管理程序和脚本的运行与登录自启设置。</value></data>
-  <data name="WindowsStartupDescription" xml:space="preserve"><value>查看注册表、启动文件夹与任务计划程序中的登录启动项。</value></data>
+  <data name="WindowsStartupDescription" xml:space="preserve"><value>查看 Windows 已登记的启动项，并选择哪些项目随登录启动。</value></data>
   <data name="PortMonitorDescription" xml:space="preserve"><value>查看本机端口及其占用程序。</value></data>
   <data name="Close" xml:space="preserve"><value>关闭</value></data>
   <data name="ReadingTasks" xml:space="preserve"><value>正在读取任务…</value></data>
@@ -88,7 +88,7 @@
   <data name="LocalReadError" xml:space="preserve"><value>读取本机状态失败：{0}</value></data>
   <data name="TasksReadError" xml:space="preserve"><value>自启任务暂不可用：{0}</value></data>
   <data name="ReadingWindowsStartup" xml:space="preserve"><value>正在读取 Windows 启动项…</value></data>
-  <data name="SystemCount" xml:space="preserve"><value>{0} 项 · 只读</value></data>
+  <data name="SystemCount" xml:space="preserve"><value>{0} 项 · {1} 项可直接更改</value></data>
   <data name="RefreshedAt" xml:space="preserve"><value>更新于 {0:HH:mm:ss}</value></data>
   <data name="WindowsStartupReadError" xml:space="preserve"><value>读取 Windows 启动项失败：{0}</value></data>
   <data name="DiscoveryCount" xml:space="preserve"><value>发现 {0} 个新监听项 · {1}</value></data>
@@ -213,4 +213,33 @@
   <data name="NoGroupsHint" xml:space="preserve"><value>新建分组后，可以把常用的程序和脚本放在一起。</value></data>
   <data name="AddGroupItem" xml:space="preserve"><value>添加程序或脚本</value></data>
   <data name="DeleteGroupPrompt" xml:space="preserve"><value>删除「{0}」分组？组内成员仍可在「启动程序」中管理。</value></data>
+  <data name="WindowsStartupToggle" xml:space="preserve"><value>更改登录自启</value></data>
+  <data name="WindowsStartupDisable" xml:space="preserve"><value>停用登录自启</value></data>
+  <data name="WindowsStartupEnable" xml:space="preserve"><value>启用登录自启</value></data>
+  <data name="WindowsStartupNextSignIn" xml:space="preserve"><value>设置在下次登录 Windows 时生效。</value></data>
+  <data name="WindowsStartupAllUsersHint" xml:space="preserve"><value>此项适用于所有用户，可在 Windows 启动设置中管理系统允许修改的项目。</value></data>
+  <data name="OpenTaskScheduler" xml:space="preserve"><value>打开任务计划程序</value></data>
+  <data name="OpenTaskSchedulerAsAdmin" xml:space="preserve"><value>以管理员身份打开任务计划程序</value></data>
+  <data name="WindowsStartupOneTimeHint" xml:space="preserve"><value>这是一项安排在登录时运行一次的任务。</value></data>
+  <data name="WindowsStartupItemChanged" xml:space="preserve"><value>启动项已变更，请刷新列表后重试。</value></data>
+  <data name="ChangingWindowsStartup" xml:space="preserve"><value>正在更新「{0}」的登录自启设置…</value></data>
+  <data name="WindowsStartupChangeFailed" xml:space="preserve"><value>无法更改「{0}」的登录自启设置。{1}</value></data>
+  <data name="WindowsStartupUnavailable" xml:space="preserve"><value>此项不可直接更改</value></data>
+  <data name="WindowsStartupInteractiveTaskHint" xml:space="preserve"><value>任意用户登录都可触发此任务，但它只在当前账户的登录会话中运行。</value></data>
+  <data name="WindowsStartupAllUsersLabel" xml:space="preserve"><value>所有用户共用</value></data>
+  <data name="WindowsStartupOneTimeLabel" xml:space="preserve"><value>仅运行一次</value></data>
+  <data name="WindowsStartupUnnamedLabel" xml:space="preserve"><value>未命名的启动项</value></data>
+  <data name="WindowsStartupUnnamedHint" xml:space="preserve"><value>此注册表项没有名称，无法为它单独保存登录自启开关。</value></data>
+  <data name="WindowsStartupUnknownApprovalLabel" xml:space="preserve"><value>自启状态未知</value></data>
+  <data name="WindowsStartupUnknownApprovalHint" xml:space="preserve"><value>此项使用了无法识别的自启设置，可到 Windows 启动设置查看。</value></data>
+  <data name="WindowsStartupTaskAccountLabel" xml:space="preserve"><value>由其他账户运行</value></data>
+  <data name="WindowsStartupTaskAccountHint" xml:space="preserve"><value>此任务由其他账户或 Windows 服务运行，可在任务计划程序中管理。</value></data>
+  <data name="WindowsStartupTaskOtherTriggersLabel" xml:space="preserve"><value>含其他触发条件</value></data>
+  <data name="WindowsStartupTaskOtherTriggersHint" xml:space="preserve"><value>此任务还有登录以外的触发条件，可在任务计划程序中单独管理。</value></data>
+  <data name="WindowsStartupTaskScopeLabel" xml:space="preserve"><value>任务范围受限</value></data>
+  <data name="WindowsStartupTaskScopeHint" xml:space="preserve"><value>此任务的运行范围超出当前账户的普通登录会话，或包含其他账户的触发条件，可在任务计划程序中管理。</value></data>
+  <data name="WindowsStartupTaskLogonDisabledLabel" xml:space="preserve"><value>登录触发器已关闭</value></data>
+  <data name="WindowsStartupTaskLogonDisabledHint" xml:space="preserve"><value>此任务的登录触发器已经关闭，可在任务计划程序中修改触发器。</value></data>
+  <data name="WindowsStartupPermissionDeniedLabel" xml:space="preserve"><value>Windows 权限不足</value></data>
+  <data name="WindowsStartupPermissionDeniedHint" xml:space="preserve"><value>当前 Windows 权限不足以修改此项，请使用对应的系统管理入口。</value></data>
 </root>

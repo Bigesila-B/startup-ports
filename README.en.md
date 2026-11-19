@@ -4,6 +4,12 @@
 
 Manage which apps and scripts start when you sign in to Windows. See which processes own local ports and what launched them. Keep desktop apps and local development services in one startup list.
 
+## Screenshots
+
+Windows Startup Items with sample data, shown in Simplified Chinese. The header counts entries you can change, and restricted rows show the reason below their status.
+
+![Windows Startup Items with sample data](docs/windows-startup.zh-CN.png)
+
 ## Install and use
 
 Download the Windows 11 x64 installer, `StartupPorts-*-win-x64-setup.exe`, from [GitHub Releases](https://github.com/Bigesila-B/startup-ports/releases). It installs for the current Windows account and includes the .NET runtime. Setup is available in Simplified Chinese and English, with an optional desktop shortcut. The app first opens in the language chosen in Setup. You can switch languages at any time using the selector at the bottom left, and the app remembers your choice.
@@ -12,7 +18,7 @@ Download the Windows 11 x64 installer, `StartupPorts-*-win-x64-setup.exe`, from 
 2. If the app listens on a port, enter the expected port and choose TCP or UDP. Save the entry and select Run Now (立即运行) to check whether the startup item owns that port. Select an item to see which ports it actually uses or which process owns the expected port.
 3. In Port Monitor (端口监控), search by port, process name, or PID. Select a row to copy the address, open a supported TCP address in your browser, or prefill a startup item. If a script launched the process, you can use that script in place of the executable in the prefilled form.
 
-Windows Startup Items (Windows 启动项) lists existing Run and RunOnce registry entries, the current user's and shared Startup folders, and readable scheduled logon tasks. See each item's program icon, status, source, and startup command. Open Windows Startup Settings (打开 Windows 启动设置) to manage Windows startup apps, including Store apps registered there.
+Windows Startup Items (Windows 启动项) lists existing Run and RunOnce registry entries, the current user's and shared Startup folders, and readable scheduled logon tasks. Disable or restore supported items when your account has write access. This includes logon-only tasks that run in your standard interactive session, even when any user's sign-in can trigger them. Each restricted item shows a reason and offers a shortcut to Startup settings or Task Scheduler. Windows Startup settings also manages Store apps registered there.
 
 In Startup Groups, choose **New group**, name it, and select the apps or scripts to keep together. Select a folder card to see its members and their current sign-in status, or run the whole group. Bulk sign-in changes also appear in Startup Apps and every group containing those members.
 
@@ -23,6 +29,21 @@ The monitor covers IPv4 and IPv6 TCP listeners and UDP bindings. Addresses for t
 Choose a folder during your first installation. The default is `%LOCALAPPDATA%\Programs\StartupPorts`. Updates reuse the existing folder and keep your startup tasks. Some port ownership details become available again the next time StartupPorts launches the item. To change folders, save your startup item settings, uninstall, and reinstall in the new folder. Uninstalling removes tasks registered by StartupPorts and leaves the apps it launched running.
 
 StartupPorts checks GitHub for new releases when it opens. Use **Check for updates** at the bottom left to check manually or turn off startup checks. When a release is available, download and verify its installer, then open the setup wizard to finish the update.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    UI["StartupPorts desktop UI"] --> Groups["Current-user group settings"]
+    UI --> Tasks["Windows Task Scheduler"]
+    Tasks --> Runner["Launcher for apps and scripts"]
+    Runner --> State["Process run records"]
+    UI --> Startup["Windows Startup registry and folders"]
+    UI --> Ports["Port monitor"]
+    Windows["Windows TCP / UDP endpoints"] --> Ports
+    State --> Ports
+    UI --> Updates["GitHub Releases and installer verification"]
+```
 
 ## Build from source
 

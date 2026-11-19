@@ -29,6 +29,7 @@ public partial class MainWindow : Window
     private UpdateRelease? _availableUpdate;
     private ICollectionView? _portView;
     private bool _readingWindowsStartup;
+    private bool _changingWindowsStartup;
     private bool _working;
     private bool _closed;
     private int _discoveryGeneration;
@@ -69,6 +70,11 @@ public partial class MainWindow : Window
             ResetDiscovery();
             if (WindowState != WindowState.Minimized && IsLoaded)
                 await RefreshAsync(wait: true);
+        };
+        Activated += async (_, _) =>
+        {
+            if (IsLoaded && WindowsStartupNav.IsChecked == true)
+                await ReadWindowsStartupAsync();
         };
         Closed += (_, _) =>
         {
@@ -266,9 +272,9 @@ public partial class MainWindow : Window
             column.Header = L(resource);
     }
 
-    private async Task ReadWindowsStartupAsync()
+    private async Task ReadWindowsStartupAsync(string? permissionDeniedId = null)
     {
-        if (_readingWindowsStartup || _closed)
+        if (_readingWindowsStartup || _changingWindowsStartup || _closed)
             return;
         _readingWindowsStartup = true;
         StatusText.Text = L("ReadingWindowsStartup");
@@ -278,10 +284,17 @@ public partial class MainWindow : Window
             var snapshot = await Task.Run(WindowsStartup.Read);
             if (_closed || WindowsStartupNav.IsChecked != true)
                 return;
+            var items = permissionDeniedId == null ? snapshot.Items : snapshot.Items.Select(item =>
+                item.Id == permissionDeniedId && item.Toggle != null
+                    ? item with { Toggle = null, Restriction = WindowsStartupRestriction.PermissionDenied }
+                    : item).ToArray();
             var id = (WindowsStartupGrid.SelectedItem as WindowsStartupItem)?.Id;
-            Replace(WindowsStartupGrid, snapshot.Items, snapshot.Items.FirstOrDefault(item => item.Id == id));
-            WindowsStartupCount.Text = L("SystemCount", snapshot.Items.Count);
-            WindowsStartupEmpty.Visibility = snapshot.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            var selected = items.FirstOrDefault(item => item.Id == id);
+            Replace(WindowsStartupGrid, items, selected);
+            if (selected != null)
+                WindowsStartupGrid.ScrollIntoView(selected);
+            WindowsStartupCount.Text = L("SystemCount", items.Count, items.Count(item => item.Toggle != null));
+            WindowsStartupEmpty.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             StatusText.Text = snapshot.Issues.Count == 0
                 ? L("RefreshedAt", DateTime.Now)
                 : string.Join("  ·  ", snapshot.Issues);
@@ -381,8 +394,8 @@ public partial class MainWindow : Window
             startup.Entry.PathIssue() == null;
         EnableButton.Content = startup == null ? L("EnableDisable") : startup.Entry.Enabled ? L("Disable") : L("Enable");
         AddButton.IsEnabled = !_working;
-        RefreshButton.IsEnabled = WindowsStartupNav.IsChecked == true ? !_readingWindowsStartup : !_working;
-        LanguageSelector.IsEnabled = !_working && !_readingWindowsStartup;
+        RefreshButton.IsEnabled = WindowsStartupNav.IsChecked == true ? !_readingWindowsStartup && !_changingWindowsStartup : !_working;
+        LanguageSelector.IsEnabled = !_working && !_readingWindowsStartup && !_changingWindowsStartup;
         UpdatesButton.IsEnabled = !_working;
         UpdateGroupControls();
         CopyButton.IsEnabled = port != null;
@@ -393,6 +406,18 @@ public partial class MainWindow : Window
         PortDetails.Text = service?.Details ?? L("ChoosePort");
         CopyStartupButton.IsEnabled = windowsItem != null;
         WindowsStartupDetails.Text = windowsItem?.Command ?? L("ChooseWindowsStartupItem");
+        ToggleWindowsStartupButton.IsEnabled = !_readingWindowsStartup && !_changingWindowsStartup && windowsItem?.Toggle != null;
+        ToggleWindowsStartupButton.Content = L(windowsItem?.Toggle?.Enabled switch
+        {
+            true => "WindowsStartupDisable",
+            false => "WindowsStartupEnable",
+            _ when windowsItem?.Restriction != null => "WindowsStartupUnavailable",
+            _ => "WindowsStartupToggle",
+        });
+        WindowsStartupHint.Visibility = windowsItem == null ? Visibility.Collapsed : Visibility.Visible;
+        WindowsStartupHint.Text = windowsItem?.Hint ?? "";
+        OpenWindowsStartupButton.Content = L(windowsItem?.IsScheduledTask != true ? "OpenWindowsStartupSettings" :
+            windowsItem.Restriction == WindowsStartupRestriction.PermissionDenied ? "OpenTaskSchedulerAsAdmin" : "OpenTaskScheduler");
     }
 
     private async Task Change(Action change)
@@ -514,6 +539,39 @@ public partial class MainWindow : Window
             CopyText(item.Command);
     }
 
+    private async void ToggleWindowsStartupClicked(object sender, RoutedEventArgs e)
+    {
+        if (_readingWindowsStartup || _changingWindowsStartup ||
+            WindowsStartupGrid.SelectedItem is not WindowsStartupItem { Toggle: { } toggle } item)
+            return;
+
+        _changingWindowsStartup = true;
+        string? permissionDeniedId = null;
+        StatusText.Text = L("ChangingWindowsStartup", item.Name);
+        UpdateControls();
+        try { await Task.Run(() => toggle.SetEnabled(!toggle.Enabled)); }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException ||
+            ex.HResult == unchecked((int)0x80070005))
+        {
+            permissionDeniedId = item.Id;
+        }
+        catch (Exception ex) when (IsExpected(ex))
+        {
+            if (!_closed)
+                ShowError(new InvalidOperationException(L("WindowsStartupChangeFailed", item.Name, ex.Message), ex));
+        }
+        finally
+        {
+            _changingWindowsStartup = false;
+            if (!_closed)
+            {
+                if (WindowsStartupNav.IsChecked == true)
+                    await ReadWindowsStartupAsync(permissionDeniedId);
+                UpdateControls();
+            }
+        }
+    }
+
     private void CopyText(string value)
     {
         try { Clipboard.SetText(value); }
@@ -526,11 +584,25 @@ public partial class MainWindow : Window
             OpenAddress(uri.AbsoluteUri);
     }
 
-    private void OpenWindowsStartupSettings(object sender, RoutedEventArgs e) => OpenAddress("ms-settings:startupapps");
-
-    private void OpenAddress(string address)
+    private void OpenWindowsStartupSettings(object sender, RoutedEventArgs e)
     {
-        try { Process.Start(new ProcessStartInfo(address) { UseShellExecute = true })?.Dispose(); }
+        if (WindowsStartupGrid.SelectedItem is not WindowsStartupItem { IsScheduledTask: true } task)
+        {
+            OpenAddress("ms-settings:startupapps");
+            return;
+        }
+
+        var console = System.IO.Path.Combine(Environment.SystemDirectory, "taskschd.msc");
+        if (task.Restriction == WindowsStartupRestriction.PermissionDenied)
+            OpenAddress(System.IO.Path.Combine(Environment.SystemDirectory, "mmc.exe"), $"\"{console}\"", "runas");
+        else
+            OpenAddress(console);
+    }
+
+    private void OpenAddress(string address, string arguments = "", string verb = "")
+    {
+        try { Process.Start(new ProcessStartInfo(address, arguments) { UseShellExecute = true, Verb = verb })?.Dispose(); }
+        catch (Win32Exception ex) when (verb == "runas" && ex.NativeErrorCode == 1223) { }
         catch (Win32Exception ex) { ShowError(ex); }
     }
 

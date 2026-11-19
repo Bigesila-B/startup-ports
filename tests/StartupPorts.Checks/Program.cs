@@ -31,7 +31,10 @@ await UpdateChecks.RunAsync();
 if (args is ["--github-update-check"])
     await UpdateChecks.ProbeGitHubAsync();
 if (args is ["--scheduler", var launcher])
+{
+    WindowsStartupChecks.Run();
     await CheckScheduler(Path.GetFullPath(launcher));
+}
 if (args is ["--installer", var installer])
     await CheckInstaller(Path.GetFullPath(installer));
 Console.WriteLine("StartupPorts checks passed.");
@@ -274,6 +277,7 @@ static void CheckProcessCell()
                     finally { editor.Close(); }
                     Require(WindowsStartup.ApprovalState(BitConverter.GetBytes(2u)) == enabled,
                         "Startup status did not use the selected language.");
+                    WindowsStartupChecks.CheckControls(window, startup);
                     var release = new UpdateRelease(new Version(8, 0, 0), new Uri("https://github.com/Bigesila-B/startup-ports/releases"),
                         new UpdatePackage(new Uri("https://github.com/Bigesila-B/startup-ports/releases"), "", 1));
                     var updates = new UpdateDialog(new GitHubUpdates(), () => Task.FromResult<UpdateRelease?>(release), release);

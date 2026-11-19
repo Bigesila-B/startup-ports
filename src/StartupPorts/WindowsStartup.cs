@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -8,7 +9,19 @@ using static StartupPorts.UiText;
 
 namespace StartupPorts;
 
-internal sealed record WindowsStartupItem(string Id, string Name, string Source, string Scope, string State, string Command, BitmapSource? Icon);
+internal enum WindowsStartupRestriction
+{
+    OneTime, AllUsers, Unnamed, UnknownApproval, TaskAccount, TaskOtherTriggers, TaskScope, TaskLogonDisabled, PermissionDenied,
+}
+
+internal sealed record WindowsStartupToggle(bool Enabled, Action<bool> SetEnabled, string? HintResource = null);
+internal sealed record WindowsStartupItem(string Id, string Name, string Source, string Scope, string State, string Command,
+    BitmapSource? Icon, WindowsStartupToggle? Toggle = null, WindowsStartupRestriction? Restriction = null, bool IsScheduledTask = false)
+{
+    public string RestrictionLabel => Restriction is { } reason ? L($"WindowsStartup{reason}Label") : "";
+    public string Hint => L(Restriction is { } reason ? $"WindowsStartup{reason}Hint" :
+        Toggle?.HintResource ?? "WindowsStartupNextSignIn");
+}
 internal sealed record WindowsStartupSnapshot(IReadOnlyList<WindowsStartupItem> Items, IReadOnlyList<string> Issues);
 
 internal static class WindowsStartup
@@ -47,9 +60,17 @@ internal static class WindowsStartup
                 if (key.GetValue(name, null, RegistryValueOptions.DoNotExpandEnvironmentNames) is not string command ||
                     string.IsNullOrWhiteSpace(command))
                     continue;
-                var state = kind == "RunOnce" ? L("RunOnce") : ApprovalState(approvals?.GetValue(name));
+                var oneTime = kind == "RunOnce";
+                var approval = approvals?.GetValue(name);
+                var enabled = EditableApproval(approval);
+                var restriction = oneTime ? WindowsStartupRestriction.OneTime :
+                    name.Length == 0 ? WindowsStartupRestriction.Unnamed : ApprovalRestriction(hive, enabled);
+                var toggle = restriction == null && enabled is { } canStart
+                    ? new WindowsStartupToggle(canStart, value => SetRunEnabled(view, name, command, value)) : null;
+                var state = oneTime ? L("RunOnce") : DisplayApproval(approval, toggle);
                 items.Add(new($"{hive}/{view}/{kind}/{name}", name.Length > 0 ? name : L("DefaultStartupItem"),
-                    is32 ? L("RegistrySource32", kind) : L("RegistrySource", kind), scope, state, command, icons.FromCommand(command)));
+                    is32 ? L("RegistrySource32", kind) : L("RegistrySource", kind), scope, state, command, icons.FromCommand(command),
+                    toggle, restriction));
             }
         }
     }
@@ -66,18 +87,85 @@ internal static class WindowsStartup
             var fileName = Path.GetFileName(path);
             if (fileName.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase))
                 continue;
+            var approval = approvals?.GetValue(fileName);
+            var enabled = EditableApproval(approval);
+            var restriction = ApprovalRestriction(hive, enabled);
+            var toggle = restriction == null && enabled is { } canStart
+                ? new WindowsStartupToggle(canStart, value => SetFolderEnabled(folder, path, value)) : null;
             items.Add(new($"{location}/{path}", Path.GetFileNameWithoutExtension(path), L("StartupFolder"), scope,
-                ApprovalState(approvals?.GetValue(fileName)), path, icons.FromStartupFile(path)));
+                DisplayApproval(approval, toggle), path, icons.FromStartupFile(path), toggle, restriction));
         }
     }
 
-    internal static string ApprovalState(object? value) =>
-        value is not byte[] { Length: >= 4 } data ? L("Registered") : BitConverter.ToUInt32(data) switch
+    private static WindowsStartupRestriction? ApprovalRestriction(RegistryHive hive, bool? enabled) =>
+        hive == RegistryHive.LocalMachine ? WindowsStartupRestriction.AllUsers :
+        enabled == null ? WindowsStartupRestriction.UnknownApproval : null;
+
+    private static string DisplayApproval(object? approval, WindowsStartupToggle? toggle) =>
+        toggle is { Enabled: true } ? L("Enabled") : ApprovalState(approval);
+
+    internal static string ApprovalState(object? value) => value == null ? L("Registered") : ApprovalCode(value) switch
+    {
+        2 or 6 => L("Enabled"),
+        3 or 7 => L("Disabled"),
+        _ => L("UnknownState"),
+    };
+
+    private static uint? ApprovalCode(object? value) => value is byte[] { Length: >= 4 } data
+        ? BinaryPrimitives.ReadUInt32LittleEndian(data) : null;
+
+    private static bool? EditableApproval(object? value) => value switch
+    {
+        null => true,
+        byte[] { Length: 12 } => ApprovalCode(value) switch
         {
-            2 or 6 => L("Enabled"),
-            3 or 7 => L("Disabled"),
-            _ => L("UnknownState"),
-        };
+            2 or 6 => true,
+            3 or 7 => false,
+            _ => null,
+        },
+        _ => null,
+    };
+
+    private static void SetRunEnabled(RegistryView view, string name, string command, bool enabled)
+    {
+        using var root = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, view);
+        using var source = root.OpenSubKey(CurrentVersion + "Run");
+        if (!string.Equals(source?.GetValue(name, null, RegistryValueOptions.DoNotExpandEnvironmentNames) as string,
+                command, StringComparison.Ordinal))
+            throw new InvalidOperationException(L("WindowsStartupItemChanged"));
+        var bucket = view == RegistryView.Registry32 ? "Run32" : "Run";
+        SetCurrentUserApproval(bucket, name, enabled);
+    }
+
+    private static void SetFolderEnabled(string folder, string path, bool enabled)
+    {
+        if (!string.Equals(Environment.GetFolderPath(Environment.SpecialFolder.Startup), folder, StringComparison.OrdinalIgnoreCase) ||
+            !File.Exists(path))
+            throw new InvalidOperationException(L("WindowsStartupItemChanged"));
+        SetCurrentUserApproval("StartupFolder", Path.GetFileName(path), enabled);
+    }
+
+    private static void SetCurrentUserApproval(string bucket, string name, bool enabled)
+    {
+        using var root = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
+        using var key = root.CreateSubKey(StartupApproved + bucket);
+        WriteApproval(key, name, enabled);
+    }
+
+    internal static void WriteApproval(RegistryKey key, string name, bool enabled)
+    {
+        var previous = key.GetValue(name);
+        var current = EditableApproval(previous) ?? throw new InvalidOperationException(L("WindowsStartupItemChanged"));
+        if (current == enabled)
+            return;
+
+        var code = ApprovalCode(previous) ?? 2u;
+        var data = new byte[12];
+        BinaryPrimitives.WriteUInt32LittleEndian(data, enabled ? code & ~1u : code | 1u);
+        if (!enabled)
+            BinaryPrimitives.WriteInt64LittleEndian(data.AsSpan(4), DateTime.UtcNow.ToFileTimeUtc());
+        key.SetValue(name, data, RegistryValueKind.Binary);
+    }
 
     private static void TryRead(string source, Action read, List<string> issues)
     {

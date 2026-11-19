@@ -318,7 +318,11 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <DockPanel Margin="12,11">
-                        <Button DockPanel.Dock="Right" Content="{DynamicResource OpenWindowsStartupSettings}" Click="OpenWindowsStartupSettings"/>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button x:Name="ToggleWindowsStartupButton" Content="{DynamicResource WindowsStartupToggle}" IsEnabled="False"
+                                    Click="ToggleWindowsStartupClicked" Style="{StaticResource Primary}" Margin="0,0,8,0"/>
+                            <Button x:Name="OpenWindowsStartupButton" Content="{DynamicResource OpenWindowsStartupSettings}" Click="OpenWindowsStartupSettings"/>
+                        </StackPanel>
                         <TextBlock x:Name="WindowsStartupCount" Text="{DynamicResource ReadingStartupItems}" Style="{StaticResource MutedText}" VerticalAlignment="Center" Margin="3,0"/>
                     </DockPanel>
                     <DataGrid x:Name="WindowsStartupGrid" Grid.Row="1" RowHeight="53" SelectionChanged="SelectionChanged"
@@ -339,7 +343,22 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="State" Binding="{Binding State}" Width="91" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTemplateColumn Header="State" SortMemberPath="State" Width="121">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel VerticalAlignment="Center" ToolTip="{Binding Hint}" AutomationProperties.HelpText="{Binding Hint}">
+                                            <TextBlock Text="{Binding State}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock x:Name="RestrictionText" Text="{Binding RestrictionLabel}" FontSize="11"
+                                                       Foreground="#705821" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Restriction}" Value="{x:Null}">
+                                                <Setter TargetName="RestrictionText" Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="152" ElementStyle="{StaticResource CellText}"/>
                             <DataGridTextColumn Header="Scope" Binding="{Binding Scope}" Width="90" ElementStyle="{StaticResource CellText}"/>
                             <DataGridTextColumn Header="CommandOrPath" Binding="{Binding Command}" Width="1.7*" MinWidth="135" ElementStyle="{StaticResource CellText}"/>
@@ -351,9 +370,12 @@
                     <Border Grid.Row="2" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="10,8">
                         <DockPanel>
                             <Button DockPanel.Dock="Right" x:Name="CopyStartupButton" Content="{DynamicResource CopyCommandOrPath}" Click="CopyStartupClicked"/>
-                            <TextBlock x:Name="WindowsStartupDetails" VerticalAlignment="Center" Margin="4,0,8,0"
-                                       Style="{StaticResource MutedText}" TextTrimming="CharacterEllipsis"
-                                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                            <StackPanel VerticalAlignment="Center" Margin="4,0,8,0">
+                                <TextBlock x:Name="WindowsStartupDetails" Style="{StaticResource MutedText}" TextTrimming="CharacterEllipsis"
+                                           ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                                <TextBlock x:Name="WindowsStartupHint" Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"
+                                           Margin="0,3,0,0" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite"/>
+                            </StackPanel>
                         </DockPanel>
                     </Border>
                 </Grid>

@@ -14,7 +14,7 @@
   <data name="EditEntry" xml:space="preserve"><value>Edit startup item</value></data>
   <data name="StartupEntry" xml:space="preserve"><value>Startup item</value></data>
   <data name="StartupPageDescription" xml:space="preserve"><value>Manage sign-in and run settings for individual apps and scripts.</value></data>
-  <data name="WindowsStartupDescription" xml:space="preserve"><value>See sign-in items from the registry, Startup folders, and Task Scheduler.</value></data>
+  <data name="WindowsStartupDescription" xml:space="preserve"><value>Find existing Windows startup items and choose which supported items start at sign-in.</value></data>
   <data name="PortMonitorDescription" xml:space="preserve"><value>See local ports and the processes using them.</value></data>
   <data name="Close" xml:space="preserve"><value>Close</value></data>
   <data name="ReadingTasks" xml:space="preserve"><value>Reading startup tasks…</value></data>
@@ -88,7 +88,7 @@
   <data name="LocalReadError" xml:space="preserve"><value>Could not read local status. {0}</value></data>
   <data name="TasksReadError" xml:space="preserve"><value>Startup tasks are unavailable. {0}</value></data>
   <data name="ReadingWindowsStartup" xml:space="preserve"><value>Reading Windows startup items…</value></data>
-  <data name="SystemCount" xml:space="preserve"><value>{0} items · Read-only</value></data>
+  <data name="SystemCount" xml:space="preserve"><value>{0} items · {1} editable</value></data>
   <data name="RefreshedAt" xml:space="preserve"><value>Updated {0:HH:mm:ss}</value></data>
   <data name="WindowsStartupReadError" xml:space="preserve"><value>Could not read Windows startup items. {0}</value></data>
   <data name="DiscoveryCount" xml:space="preserve"><value>{0} new listeners · {1}</value></data>
@@ -213,4 +213,33 @@
   <data name="NoGroupsHint" xml:space="preserve"><value>Create a group to put apps and scripts together.</value></data>
   <data name="AddGroupItem" xml:space="preserve"><value>Add app or script</value></data>
   <data name="DeleteGroupPrompt" xml:space="preserve"><value>Delete “{0}”? You can still manage its members under Startup apps.</value></data>
+  <data name="WindowsStartupToggle" xml:space="preserve"><value>Change sign-in startup</value></data>
+  <data name="WindowsStartupDisable" xml:space="preserve"><value>Disable sign-in startup</value></data>
+  <data name="WindowsStartupEnable" xml:space="preserve"><value>Enable sign-in startup</value></data>
+  <data name="WindowsStartupNextSignIn" xml:space="preserve"><value>Applies the next time you sign in to Windows.</value></data>
+  <data name="WindowsStartupAllUsersHint" xml:space="preserve"><value>This entry applies to all users. Open Windows Startup settings to manage it if Windows allows changes.</value></data>
+  <data name="OpenTaskScheduler" xml:space="preserve"><value>Open Task Scheduler</value></data>
+  <data name="OpenTaskSchedulerAsAdmin" xml:space="preserve"><value>Open Task Scheduler as administrator</value></data>
+  <data name="WindowsStartupOneTimeHint" xml:space="preserve"><value>This entry is registered for a single run at sign-in.</value></data>
+  <data name="WindowsStartupItemChanged" xml:space="preserve"><value>This startup item changed. Refresh the list and try again.</value></data>
+  <data name="ChangingWindowsStartup" xml:space="preserve"><value>Updating sign-in startup for “{0}”…</value></data>
+  <data name="WindowsStartupChangeFailed" xml:space="preserve"><value>Could not change sign-in startup for “{0}”. {1}</value></data>
+  <data name="WindowsStartupUnavailable" xml:space="preserve"><value>Unavailable here</value></data>
+  <data name="WindowsStartupInteractiveTaskHint" xml:space="preserve"><value>Any sign-in can trigger this task, but it runs only in your signed-in Windows account.</value></data>
+  <data name="WindowsStartupAllUsersLabel" xml:space="preserve"><value>Shared entry</value></data>
+  <data name="WindowsStartupOneTimeLabel" xml:space="preserve"><value>Runs once</value></data>
+  <data name="WindowsStartupUnnamedLabel" xml:space="preserve"><value>Unnamed entry</value></data>
+  <data name="WindowsStartupUnnamedHint" xml:space="preserve"><value>This registry entry has no name that Windows can use to store a separate startup setting.</value></data>
+  <data name="WindowsStartupUnknownApprovalLabel" xml:space="preserve"><value>Unknown setting</value></data>
+  <data name="WindowsStartupUnknownApprovalHint" xml:space="preserve"><value>Windows uses an unrecognized startup setting for this entry. Check it in Windows Startup settings.</value></data>
+  <data name="WindowsStartupTaskAccountLabel" xml:space="preserve"><value>Different account</value></data>
+  <data name="WindowsStartupTaskAccountHint" xml:space="preserve"><value>The task runs under another account or a Windows service. Manage it in Task Scheduler.</value></data>
+  <data name="WindowsStartupTaskOtherTriggersLabel" xml:space="preserve"><value>Other triggers</value></data>
+  <data name="WindowsStartupTaskOtherTriggersHint" xml:space="preserve"><value>This task can also run for reasons other than sign-in. Manage the individual triggers in Task Scheduler.</value></data>
+  <data name="WindowsStartupTaskScopeLabel" xml:space="preserve"><value>Broader task scope</value></data>
+  <data name="WindowsStartupTaskScopeHint" xml:space="preserve"><value>This logon task can run outside the current account’s standard interactive session or has triggers for other accounts. Manage it in Task Scheduler.</value></data>
+  <data name="WindowsStartupTaskLogonDisabledLabel" xml:space="preserve"><value>Logon trigger off</value></data>
+  <data name="WindowsStartupTaskLogonDisabledHint" xml:space="preserve"><value>Its sign-in triggers are already off. Use Task Scheduler to change a trigger.</value></data>
+  <data name="WindowsStartupPermissionDeniedLabel" xml:space="preserve"><value>Access denied</value></data>
+  <data name="WindowsStartupPermissionDeniedHint" xml:space="preserve"><value>The app’s current Windows account lacks permission to change this entry. Use the system management button.</value></data>
 </root>

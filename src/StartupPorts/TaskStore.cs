@@ -145,32 +145,94 @@ internal sealed class TaskStore
             if (name.StartsWith(Prefix, StringComparison.OrdinalIgnoreCase) && IsOwned(candidate))
                 return;
             dynamic definition = task.Definition;
-            var matches = false;
-            var allUsers = false;
-            var triggerEnabled = false;
-            dynamic triggers = definition.Triggers;
-            for (var index = 1; index <= (int)triggers.Count; index++)
-            {
-                dynamic trigger = triggers[index];
-                if ((int)trigger.Type != 9)
-                    continue;
-                string? user = trigger.UserId;
-                var anyUser = string.IsNullOrWhiteSpace(user);
-                if (!anyUser && !IsCurrentUser(user!))
-                    continue;
-                matches = true;
-                allUsers |= anyUser;
-                triggerEnabled |= (bool)trigger.Enabled;
-            }
+            var (matches, allUsers, triggerEnabled, restriction) = InspectOtherLogonTask((object)definition);
             if (!matches)
                 return;
             string path = task.Path;
             var icon = ReadActionIcon((object)definition.Actions, icons);
+            var enabled = (bool)task.Enabled;
+            WindowsStartupToggle? toggle = null;
+            if (restriction == null && IsTaskWriteDenied(candidate))
+                restriction = WindowsStartupRestriction.PermissionDenied;
+            if (restriction == null)
+            {
+                string xml = definition.XmlText;
+                toggle = new(enabled, value => new TaskStore().SetOtherLogonEnabled(path, xml, value),
+                    allUsers ? "WindowsStartupInteractiveTaskHint" : null);
+            }
             items.Add(new(path, name, L("ScheduledLogon"), allUsers ? L("AllUsers") : L("CurrentUser"),
-                (bool)task.Enabled && triggerEnabled ? L("Enabled") : L("Disabled"), path, icon));
+                enabled && triggerEnabled ? L("Enabled") : L("Disabled"), path, icon, toggle, restriction, IsScheduledTask: true));
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException ||
             ex.HResult is FileNotFound or TaskNotFound) { }
+    }
+
+    internal static (bool Matches, bool AllUsers, bool TriggerEnabled, WindowsStartupRestriction? Restriction)
+        InspectOtherLogonTask(object taskDefinition)
+    {
+        dynamic definition = taskDefinition;
+        var matches = false;
+        var allUsers = false;
+        var triggerEnabled = false;
+        var otherTrigger = false;
+        var otherUser = false;
+        dynamic triggers = definition.Triggers;
+        for (var index = 1; index <= (int)triggers.Count; index++)
+        {
+            dynamic trigger = triggers[index];
+            if ((int)trigger.Type != 9)
+            {
+                otherTrigger = true;
+                continue;
+            }
+            string? user = trigger.UserId;
+            var anyUser = string.IsNullOrWhiteSpace(user);
+            if (!anyUser && !IsCurrentUser(user!))
+            {
+                otherUser = true;
+                continue;
+            }
+            matches = true;
+            allUsers |= anyUser;
+            triggerEnabled |= (bool)trigger.Enabled;
+        }
+        if (!matches)
+            return (false, false, false, null);
+
+        dynamic principal = definition.Principal;
+        var restriction = !IsCurrentUser((string)principal.UserId) ? WindowsStartupRestriction.TaskAccount :
+            otherTrigger ? WindowsStartupRestriction.TaskOtherTriggers :
+            // An all-user trigger is scoped to this account by a non-elevated interactive principal.
+            otherUser || (allUsers && ((int)principal.LogonType != 3 || (int)principal.RunLevel != 0))
+                ? WindowsStartupRestriction.TaskScope :
+            !triggerEnabled ? WindowsStartupRestriction.TaskLogonDisabled : (WindowsStartupRestriction?)null;
+        return (matches, allUsers, triggerEnabled, restriction);
+    }
+
+    private static bool IsTaskWriteDenied(object candidate)
+    {
+        dynamic task = candidate;
+        try
+        {
+            // AccessCheck requires the owner and group along with the DACL.
+            return TaskWriteAccess.IsDenied((string)task.GetSecurityDescriptor(7));
+        }
+        catch (Exception ex) when (ex is ArgumentException or COMException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            return false; // The Task Scheduler service still checks access when the user changes the task.
+        }
+    }
+
+    private void SetOtherLogonEnabled(string path, string expectedDefinition, bool enabled)
+    {
+        var separator = path.LastIndexOf('\\');
+        dynamic folder = _scheduler.GetFolder(separator == 0 ? @"\" : path[..separator]);
+        dynamic task = folder.GetTask(path[(separator + 1)..]);
+        dynamic definition = task.Definition;
+        var (matches, _, _, restriction) = InspectOtherLogonTask((object)definition);
+        if (!matches || restriction != null || (string)definition.XmlText != expectedDefinition)
+            throw new InvalidOperationException(L("WindowsStartupItemChanged"));
+        task.Enabled = enabled;
     }
 
     private static BitmapSource? ReadActionIcon(object collection, StartupIcons icons)
