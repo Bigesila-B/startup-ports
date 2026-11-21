@@ -4,6 +4,8 @@
 
 Manage which apps and scripts start when you sign in to Windows. See which processes own local ports and what launched them. Keep desktop apps and local development services in one startup list.
 
+Download the Linux desktop source package from the [StartupPorts Linux 0.1.0 release](https://github.com/Bigesila-B/startup-ports/releases/tag/linux-v0.1.0). See the [Linux guide](linux/README.en.md) for requirements and setup.
+
 ## Screenshots
 
 Windows Startup Items with sample data, shown in Simplified Chinese. The header counts entries you can change, and restricted rows show the reason below their status.

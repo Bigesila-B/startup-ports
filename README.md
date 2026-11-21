@@ -4,6 +4,8 @@
 
 在 Windows 上设置登录自启，同时查看本机的端口占用、监听进程和启动来源。适合把桌面程序和本地开发服务放进同一张自启列表。
 
+Linux 桌面版可从 [StartupPorts Linux 0.1.0 发行页](https://github.com/Bigesila-B/startup-ports/releases/tag/linux-v0.1.0) 下载源码包。依赖和运行步骤见 [Linux 使用说明](linux/README.md)。
+
 ## 界面展示
 
 「Windows 启动项」页面示例。页头统计可直接更改的项目，受限项目在状态下方显示原因。
