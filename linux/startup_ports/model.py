@@ -10,7 +10,7 @@ import tempfile
 import time
 
 APP_ID = "io.github.BigesilaB.StartupPorts"
-VERSION = "0.1.0"
+VERSION = "0.1.2"
 DISPATCHER = f"{APP_ID}.desktop"
 
 

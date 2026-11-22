@@ -9,6 +9,7 @@ import tempfile
 import time
 
 from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QPixmap
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QComboBox, QDialog, QLineEdit, QListWidget, QPushButton
 
@@ -148,9 +149,11 @@ def check(root: Path):
     button("page_1").click()
     assert window.heading.text() == "自启分组" and window.groups.count() == 1
     if output := os.environ.get("STARTUPPORTS_SCREENSHOT"):
-        QTest.qWaitForWindowExposed(window)
-        app.processEvents()
-        assert window.grab().save(output)
+        QTest.qWait(150)
+        image = QPixmap(window.size())
+        image.fill(Qt.GlobalColor.transparent)
+        window.render(image)
+        assert image.save(output)
     window.close()
     app.processEvents()
     print("PASS: Qt window, entry creation, literal arguments, launch now, group icon and controls, XDG dispatcher, reversible overrides, real TCP/UDP with PID, clipboard, and Chinese switch.")

@@ -4,13 +4,17 @@
 
 在 Windows 上设置登录自启，同时查看本机的端口占用、监听进程和启动来源。适合把桌面程序和本地开发服务放进同一张自启列表。
 
-Linux 桌面版可从 [StartupPorts Linux 0.1.0 发行页](https://github.com/Bigesila-B/startup-ports/releases/tag/linux-v0.1.0) 下载源码包。依赖和运行步骤见 [Linux 使用说明](linux/README.md)。
+Linux 桌面版提供登录自启、分组、端口监控和定时关机。[下载 Linux 0.1.2 源码包](https://github.com/Bigesila-B/startup-ports/releases/tag/linux-v0.1.2) · [Linux 使用说明](linux/README.md)
 
 ## 界面展示
 
 「Windows 启动项」页面示例。页头统计可直接更改的项目，受限项目在状态下方显示原因。
 
 ![Windows 启动项页面，使用示例数据](docs/windows-startup.zh-CN.png)
+
+Linux「工具 → 定时关机」。截图中的倒计时来自测试任务。
+
+![Linux 定时关机页面](docs/linux-timed-shutdown.zh-CN.png)
 
 ## 安装与使用
 

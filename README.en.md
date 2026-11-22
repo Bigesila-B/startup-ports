@@ -4,13 +4,17 @@
 
 Manage which apps and scripts start when you sign in to Windows. See which processes own local ports and what launched them. Keep desktop apps and local development services in one startup list.
 
-Download the Linux desktop source package from the [StartupPorts Linux 0.1.0 release](https://github.com/Bigesila-B/startup-ports/releases/tag/linux-v0.1.0). See the [Linux guide](linux/README.en.md) for requirements and setup.
+The Linux desktop edition supports sign-in startup, groups, local port monitoring, and timed shutdown. [Download the Linux 0.1.2 source package](https://github.com/Bigesila-B/startup-ports/releases/tag/linux-v0.1.2) · [Linux guide](linux/README.en.md)
 
 ## Screenshots
 
 Windows Startup Items with sample data, shown in Simplified Chinese. The header counts entries you can change, and restricted rows show the reason below their status.
 
 ![Windows Startup Items with sample data](docs/windows-startup.zh-CN.png)
+
+Tools → Timed shutdown on Linux, shown in Simplified Chinese with a test timer.
+
+![Timed shutdown page on Linux](docs/linux-timed-shutdown.zh-CN.png)
 
 ## Install and use
 

@@ -15,16 +15,22 @@ from PySide6.QtWidgets import (
 
 from .model import APP_ID, VERSION, Entry, Group, Store, launch
 from .ports import parse_ss
+from .power import PowerScheduler
+from .power_page import PowerPage
 from .text import translate
 from .xdg import Autostart
 
-PAGE_NAMES = ("Startup apps", "Startup groups", "Desktop startup", "Port monitor")
-PAGE_ICONS = ("system-run", "folder", "preferences-system-startup", "network-wired")
+PAGE_NAMES = ("Startup apps", "Startup groups", "Desktop startup", "Port monitor", "Timed shutdown")
+PAGE_ICONS = ("launch.svg", "groups.svg", "desktop.svg", "ports.svg", "alarm.svg")
+ASSETS = Path(__file__).with_name("assets")
+APP_LOGO = ASSETS / "startupports.png"
+POWER_PAGE = 4
 PAGE_HINTS = (
     "Choose which programs and scripts run when you sign in.",
     "Run related programs together or change their sign-in settings in one place.",
     "Manage the desktop’s existing XDG startup entries for your account.",
     "Find local TCP listeners and UDP bindings.",
+    "Schedule a one-time shutdown, restart, sleep, or hibernation.",
 )
 ROLE = Qt.ItemDataRole.UserRole
 
@@ -40,6 +46,17 @@ def program_icon(path: str) -> QIcon:
     if Path(path).suffix in (".sh", ".py", ".fish", ".zsh"):
         return icon("text-x-script")
     return icon(stem, QStyle.StandardPixmap.SP_ComputerIcon)
+
+
+def navigation_icon(filename: str) -> QIcon:
+    result = QIcon(str(ASSETS / filename))
+    highlighted = result.pixmap(QSize(36, 36))
+    painter = QPainter(highlighted)
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+    painter.fillRect(highlighted.rect(), QColor("#2557d7"))
+    painter.end()
+    result.addPixmap(highlighted, QIcon.Mode.Normal, QIcon.State.On)
+    return result
 
 
 def folder_icon(members: list[Entry]) -> QIcon:
@@ -59,11 +76,12 @@ def folder_icon(members: list[Entry]) -> QIcon:
 
 
 class Window(QMainWindow):
-    def __init__(self, store: Store):
+    def __init__(self, store: Store, power: PowerScheduler | None = None):
         super().__init__()
         self.store = store
         self.settings = store.read()
         self.desktop = Autostart(store.home)
+        self.power = power if power is not None else PowerScheduler()
         self.language = self.settings.language or ("zh_CN" if (locale.getlocale()[0] or "").startswith("zh") else "en")
         self.page = 0
         self.ports = []
@@ -79,6 +97,7 @@ class Window(QMainWindow):
         self.timer = QTimer(self, interval=2000)
         self.timer.timeout.connect(self.tick)
         self.setWindowTitle("StartupPorts · Linux")
+        self.setWindowIcon(QIcon(str(APP_LOGO)))
         self.resize(1160, 690)
         self.setMinimumSize(880, 550)
         self.build()
@@ -110,17 +129,33 @@ class Window(QMainWindow):
         sidebar.setFixedWidth(194)
         side = QVBoxLayout(sidebar)
         side.setContentsMargins(16, 24, 16, 17)
-        title = self.label("StartupPorts", "wordmark")
-        side.addWidget(title)
-        side.addSpacing(15)
+        brand = QHBoxLayout()
+        brand.setSpacing(6)
+        logo = QLabel(objectName="app_logo")
+        logo.setPixmap(QPixmap(str(APP_LOGO)).scaled(36, 36, Qt.AspectRatioMode.KeepAspectRatio,
+                                                    Qt.TransformationMode.SmoothTransformation))
+        brand.addWidget(logo)
+        brand.addWidget(self.label("StartupPorts", "wordmark"), 1)
+        side.addLayout(brand)
+        side.addSpacing(22)
         self.navigation = []
         for index, name in enumerate(PAGE_NAMES):
+            if index == POWER_PAGE:
+                side.addSpacing(10)
+                side.addWidget(self.label("Tools", "muted"))
             button = self.button(name, lambda checked=False, page=index: self.navigate(page), f"page_{index}")
             button.setProperty("navigation", True)
             button.setCheckable(True)
-            button.setIcon(icon(PAGE_ICONS[index]))
+            button.setIcon(navigation_icon(PAGE_ICONS[index]))
+            button.setIconSize(QSize(18, 18))
             self.navigation.append(button)
-            side.addWidget(button)
+            if index == POWER_PAGE:
+                indent = QHBoxLayout()
+                indent.addSpacing(9)
+                indent.addWidget(button, 1)
+                side.addLayout(indent)
+            else:
+                side.addWidget(button)
         side.addStretch()
         side.addWidget(self.button("Check releases", self.open_releases))
         side.addWidget(self.label("Language", "muted"))
@@ -150,6 +185,8 @@ class Window(QMainWindow):
         self.pages.addWidget(self.groups_page())
         self.pages.addWidget(self.desktop_page())
         self.pages.addWidget(self.ports_page())
+        self.power_page = PowerPage(self.t, self.power)
+        self.pages.addWidget(self.power_page)
         main.addWidget(self.pages, 1)
         self.status = self.label("", "muted")
         self.status.setWordWrap(True)
@@ -219,7 +256,7 @@ class Window(QMainWindow):
                     if row_icon is not None:
                         item.setIcon(row_icon)
                 table.setItem(row, index, item)
-            if data == selected:
+            if data == selected or (table.objectName() == "desktop_entries" and selected and data.path.name == selected.path.name):
                 selected_row = row
         table.clearSelection()
         if selected_row >= 0:
@@ -418,6 +455,8 @@ class Window(QMainWindow):
                 self.desktop_count.setText(self.t("{0} items · {1} editable", len(rows), sum(not item.reason for item in rows))
                                            if rows else self.t("No desktop startup entries found."))
                 self.desktop_controls()
+            elif self.page == POWER_PAGE:
+                self.power_page.refresh()
             else:
                 self.filter_ports()
                 self.scan_ports()
@@ -428,13 +467,16 @@ class Window(QMainWindow):
         self.launched = [child for child in self.launched if child.poll() is None]
         if self.page == 3:
             self.scan_ports()
+        elif self.page == POWER_PAGE:
+            self.power_page.tick()
 
     def closeEvent(self, event):
         self.timer.stop()
         self.port_timeout.stop()
         if self.port_process.state() != QProcess.ProcessState.NotRunning:
+            self.port_process.blockSignals(True)
             self.port_process.kill()
-            self.port_process.waitForFinished()
+            self.port_process.waitForFinished(500)
         super().closeEvent(event)
 
     def scan_ports(self):
@@ -674,12 +716,12 @@ QWidget { color: #16263c; font-size: 13px; }
 QWidget#root, QDialog { background: #f1f5fb; }
 QFrame#sidebar { background: #ffffff; border-right: 1px solid #dfe7f2; }
 QFrame#card { background: white; border: 1px solid #dce5f2; border-radius: 12px; }
-QLabel#wordmark { color: #18365f; font-size: 22px; font-weight: 700; padding: 2px 4px; }
+QLabel#wordmark { color: #16263c; font-size: 17px; font-weight: 650; }
 QLabel#heading { font-size: 30px; font-weight: 700; color: #162841; }
 QLabel#section { font-size: 21px; font-weight: 650; }
 QLabel#muted { color: #526783; }
 QLabel#error { color: #9e2d44; }
-QPushButton, QComboBox, QLineEdit, QSpinBox { min-height: 22px; padding: 5px 9px; background: white;
+QPushButton, QComboBox, QLineEdit, QSpinBox, QDateTimeEdit { min-height: 22px; padding: 5px 9px; background: white;
     border: 1px solid #cfdaea; border-radius: 7px; }
 QPushButton { padding: 6px 11px; }
 QPushButton:hover { background: #edf4ff; border-color: #9dafcc; }
@@ -696,7 +738,7 @@ QListWidget#groups { background: #f8fafe; }
 QListWidget#groups::item { padding: 4px; border: 1px solid transparent; border-radius: 8px; }
 QListWidget#groups::item:selected { border-color: #7597eb; background: #e4eeff; }
 QHeaderView::section { background: #edf3fb; color: #304968; padding: 7px; border: 0; font-weight: 600; }
-QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QPushButton:focus { border-color: #7298f1; }
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDateTimeEdit:focus, QPushButton:focus { border-color: #7298f1; }
 """
 
 

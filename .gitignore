@@ -4,3 +4,5 @@
 artifacts/
 TestResults/
 *.user
+**/__pycache__/
+linux/.venv/
