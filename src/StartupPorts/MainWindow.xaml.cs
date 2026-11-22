@@ -118,18 +118,24 @@ public partial class MainWindow : Window
     {
         if (_closed || WindowState == WindowState.Minimized || WindowsStartupNav.IsChecked == true)
             return;
+        if (PowerNav.IsChecked == true)
+        {
+            await PowerPanel.RefreshAsync();
+            return;
+        }
         if (wait)
             await _refreshGate.WaitAsync();
         else if (!_refreshGate.Wait(0))
             return;
         try
         {
-            if (_closed || WindowsStartupNav.IsChecked == true)
+            if (_closed || WindowsStartupNav.IsChecked == true || PowerNav.IsChecked == true)
                 return;
             var generation = _discoveryGeneration;
             var language = LanguageCode;
             var state = await Task.Run(Capture);
-            if (_closed || WindowState == WindowState.Minimized || WindowsStartupNav.IsChecked == true || language != LanguageCode)
+            if (_closed || WindowState == WindowState.Minimized || WindowsStartupNav.IsChecked == true ||
+                PowerNav.IsChecked == true || language != LanguageCode)
                 return;
             UpdateStartupGroups(state.Tasks, state.Groups);
 
@@ -205,11 +211,14 @@ public partial class MainWindow : Window
         var showPorts = ReferenceEquals(sender, PortsNav);
         var showWindows = ReferenceEquals(sender, WindowsStartupNav);
         var showGroups = ReferenceEquals(sender, GroupsNav);
+        var showPower = ReferenceEquals(sender, PowerNav);
         var showStartup = ReferenceEquals(sender, StartupNav);
         StartupPanel.Visibility = showStartup ? Visibility.Visible : Visibility.Collapsed;
         GroupsPanel.Visibility = showGroups ? Visibility.Visible : Visibility.Collapsed;
         WindowsStartupPanel.Visibility = showWindows ? Visibility.Visible : Visibility.Collapsed;
         PortsPanel.Visibility = showPorts ? Visibility.Visible : Visibility.Collapsed;
+        PowerPanel.Visibility = showPower ? Visibility.Visible : Visibility.Collapsed;
+        StatusText.Visibility = showPower ? Visibility.Collapsed : Visibility.Visible;
         AddButton.Visibility = showStartup ? Visibility.Visible : Visibility.Collapsed;
         NewGroupButton.Visibility = showGroups ? Visibility.Visible : Visibility.Collapsed;
         UpdatePageLabels();
@@ -226,8 +235,9 @@ public partial class MainWindow : Window
         var showPorts = PortsNav.IsChecked == true;
         var showWindows = WindowsStartupNav.IsChecked == true;
         var showGroups = GroupsNav.IsChecked == true;
-        PageTitle.Text = L(showPorts ? "PortMonitor" : showWindows ? "WindowsStartupItems" : showGroups ? "StartupGroups" : "StartupApps");
-        PageDescription.Text = L(showPorts ? "PortMonitorDescription" : showWindows
+        var showPower = PowerNav.IsChecked == true;
+        PageTitle.Text = L(showPower ? "TimedShutdown" : showPorts ? "PortMonitor" : showWindows ? "WindowsStartupItems" : showGroups ? "StartupGroups" : "StartupApps");
+        PageDescription.Text = L(showPower ? "TimedShutdownDescription" : showPorts ? "PortMonitorDescription" : showWindows
             ? "WindowsStartupDescription" : showGroups ? "GroupsPageDescription" : "StartupPageDescription");
     }
 
@@ -257,6 +267,7 @@ public partial class MainWindow : Window
         UpdateColumnHeaders();
         UpdateButtonLabel();
         UpdatePageLabels();
+        PowerPanel.Render();
         ShowGroupDetails();
         ResetDiscovery();
         foreach (var row in _ports)

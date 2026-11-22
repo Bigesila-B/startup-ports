@@ -12,6 +12,10 @@ Windows Startup Items with sample data, shown in Simplified Chinese. The header 
 
 ![Windows Startup Items with sample data](docs/windows-startup.zh-CN.png)
 
+Tools → Timed shutdown on Windows, shown in Simplified Chinese with a sample countdown.
+
+![Timed shutdown page on Windows](docs/windows-timed-shutdown.zh-CN.png)
+
 Tools → Timed shutdown on Linux, shown in Simplified Chinese with a test timer.
 
 ![Timed shutdown page on Linux](docs/linux-timed-shutdown.zh-CN.png)
@@ -28,6 +32,8 @@ Windows Startup Items (Windows 启动项) lists existing Run and RunOnce registr
 
 In Startup Groups, choose **New group**, name it, and select the apps or scripts to keep together. Select a folder card to see its members and their current sign-in status, or run the whole group. Bulk sign-in changes also appear in Startup Apps and every group containing those members.
 
+Open **Tools → Timed shutdown** to schedule a one-time shutdown, restart, sleep, or hibernation. Choose a local date and time or use the 15-, 30-, or 60-minute presets. Windows keeps the timer after you close StartupPorts. You can cancel before it starts. Stay signed in and keep the computer awake at the scheduled time. Missed timers are skipped.
+
 Windows Task Scheduler runs enabled items the next time the current account signs in, even if the main window is closed. Disabling an item turns off its sign-in trigger. You can still test it with Run Now. PowerShell scripts follow the account's execution policy, and batch arguments follow CMD syntax.
 
 The monitor covers IPv4 and IPv6 TCP listeners and UDP bindings. Addresses for the same process, protocol, and port are grouped in one row, with filters for process ownership. The process column shows the app icon and readable app name alongside the executable name and PID. A generic icon is shown when Windows provides no app icon. StartupPorts identifies launch sources from verifiable parent processes or from its own launch records. Before ending a process, the app asks for confirmation and checks that it still owns the port.
@@ -43,6 +49,7 @@ flowchart LR
     UI["StartupPorts desktop UI"] --> Groups["Current-user group settings"]
     UI --> Tasks["Windows Task Scheduler"]
     Tasks --> Runner["Launcher for apps and scripts"]
+    Tasks --> Power["Timed shutdown with Windows power actions"]
     Runner --> State["Process run records"]
     UI --> Startup["Windows Startup registry and folders"]
     UI --> Ports["Port monitor"]

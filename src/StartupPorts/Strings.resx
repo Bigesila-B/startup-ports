@@ -242,4 +242,40 @@
   <data name="WindowsStartupTaskLogonDisabledHint" xml:space="preserve"><value>Its sign-in triggers are already off. Use Task Scheduler to change a trigger.</value></data>
   <data name="WindowsStartupPermissionDeniedLabel" xml:space="preserve"><value>Access denied</value></data>
   <data name="WindowsStartupPermissionDeniedHint" xml:space="preserve"><value>The app’s current Windows account lacks permission to change this entry. Use the system management button.</value></data>
+  <data name="Tools" xml:space="preserve"><value>Tools</value></data>
+  <data name="TimedShutdown" xml:space="preserve"><value>Timed shutdown</value></data>
+  <data name="TimedShutdownDescription" xml:space="preserve"><value>Schedule a one-time shutdown, restart, sleep, or hibernation.</value></data>
+  <data name="PowerSetTimer" xml:space="preserve"><value>Set a timer</value></data>
+  <data name="PowerActionLabel" xml:space="preserve"><value>Power action</value></data>
+  <data name="PowerActionShutdown" xml:space="preserve"><value>Shut down</value></data>
+  <data name="PowerActionRestart" xml:space="preserve"><value>Restart</value></data>
+  <data name="PowerActionSleep" xml:space="preserve"><value>Sleep</value></data>
+  <data name="PowerActionHibernate" xml:space="preserve"><value>Hibernate</value></data>
+  <data name="PowerDate" xml:space="preserve"><value>Local date</value></data>
+  <data name="PowerTime" xml:space="preserve"><value>Time (HH:mm)</value></data>
+  <data name="PowerPreset15" xml:space="preserve"><value>In 15 min</value></data>
+  <data name="PowerPreset30" xml:space="preserve"><value>In 30 min</value></data>
+  <data name="PowerPreset60" xml:space="preserve"><value>In 60 min</value></data>
+  <data name="PowerSchedule" xml:space="preserve"><value>Schedule</value></data>
+  <data name="PowerCurrentTimer" xml:space="preserve"><value>Current timer</value></data>
+  <data name="PowerCancel" xml:space="preserve"><value>Cancel timer</value></data>
+  <data name="PowerContinuesAfterClose" xml:space="preserve"><value>Windows keeps the timer when you close StartupPorts.</value></data>
+  <data name="PowerMissedBehavior" xml:space="preserve"><value>The timer runs while you are signed in and Windows is awake. Missed times are skipped.</value></data>
+  <data name="PowerFutureTime" xml:space="preserve"><value>Choose a time in the future.</value></data>
+  <data name="PowerAlreadyScheduled" xml:space="preserve"><value>Cancel the current timer before scheduling another.</value></data>
+  <data name="PowerCannotCancel" xml:space="preserve"><value>The timer changed or is already running. Check the current status.</value></data>
+  <data name="PowerTaskInvalid" xml:space="preserve"><value>This timer slot contains an unrecognized task.</value></data>
+  <data name="PowerTaskBusy" xml:space="preserve"><value>The timer is being updated. Try again shortly.</value></data>
+  <data name="PowerLoading" xml:space="preserve"><value>Reading the Windows timer and power options…</value></data>
+  <data name="PowerUnsupported" xml:space="preserve"><value>This Windows configuration does not support the selected power action.</value></data>
+  <data name="PowerTimeFormat" xml:space="preserve"><value>Enter a valid, unambiguous local date and a time such as 21:30.</value></data>
+  <data name="PowerSaveWork" xml:space="preserve"><value>Save your work before the scheduled time.</value></data>
+  <data name="PowerNoTimer" xml:space="preserve"><value>No timer scheduled.</value></data>
+  <data name="PowerCountdown" xml:space="preserve"><value>Time left: {0}</value></data>
+  <data name="PowerRunning" xml:space="preserve"><value>Windows is processing the request.</value></data>
+  <data name="PowerCompleted" xml:space="preserve"><value>Windows accepted the request.</value></data>
+  <data name="PowerFailed" xml:space="preserve"><value>Windows could not execute the request. Error {0}.</value></data>
+  <data name="PowerMissed" xml:space="preserve"><value>The scheduled time was missed.</value></data>
+  <data name="PowerDisabled" xml:space="preserve"><value>This timer was disabled in Task Scheduler.</value></data>
+  <data name="PowerConfirm" xml:space="preserve"><value>Schedule “{0}” for {1}? Save your work before then.</value></data>
 </root>

@@ -22,6 +22,11 @@ if (args is ["--mark", var marker, var markerValue])
     File.WriteAllText(marker, markerValue + "|" + Environment.CurrentDirectory);
     return;
 }
+if (args is ["--mark-due-power", var taskName, var powerMarker, var timerId])
+{
+    Environment.ExitCode = PowerChecks.MarkDueAction(taskName, powerMarker, timerId);
+    return;
+}
 
 CheckNativePorts();
 CheckWindowsStartup();
@@ -34,6 +39,7 @@ if (args is ["--scheduler", var launcher])
 {
     WindowsStartupChecks.Run();
     await CheckScheduler(Path.GetFullPath(launcher));
+    await PowerChecks.CheckSchedulerAsync(Path.GetFullPath(launcher));
 }
 if (args is ["--installer", var installer])
     await CheckInstaller(Path.GetFullPath(installer));
@@ -292,6 +298,7 @@ static void CheckProcessCell()
                 }
                 Console.WriteLine("Verified English and Simplified Chinese switching and the four startup field hints.");
                 GroupChecks.CheckWindow(window, explorer, known.Icon!);
+                PowerChecks.CheckUi(window);
             }
             finally { window.Close(); }
         }

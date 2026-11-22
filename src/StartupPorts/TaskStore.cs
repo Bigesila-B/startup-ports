@@ -24,10 +24,16 @@ internal sealed class TaskStore
     public TaskStore(string? launcher = null)
     {
         _launcher = launcher ?? Environment.ProcessPath!;
-        var type = Type.GetTypeFromProgID("Schedule.Service", throwOnError: true)!;
-        _scheduler = Activator.CreateInstance(type)!;
-        _scheduler.Connect();
+        _scheduler = ConnectScheduler();
         Folder = _scheduler.GetFolder(@"\");
+    }
+
+    internal static object ConnectScheduler()
+    {
+        var type = Type.GetTypeFromProgID("Schedule.Service", throwOnError: true)!;
+        dynamic scheduler = Activator.CreateInstance(type)!;
+        scheduler.Connect();
+        return (object)scheduler;
     }
 
     public TaskList List()
@@ -285,7 +291,7 @@ internal sealed class TaskStore
         return IsCurrentUser((string)definition.Principal.UserId);
     }
 
-    private static bool IsCurrentUser(string user)
+    internal static bool IsCurrentUser(string user)
     {
         if (string.Equals(user, AppIdentity.Sid, StringComparison.OrdinalIgnoreCase))
             return true;

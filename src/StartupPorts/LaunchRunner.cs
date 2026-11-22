@@ -40,7 +40,10 @@ internal static class LaunchRunner
         try
         {
             if (uninstall)
+            {
+                new PowerTaskStore().DeleteOnUninstall();
                 new TaskStore().DeleteAll();
+            }
             using var current = Process.GetCurrentProcess();
             var processPath = Environment.ProcessPath;
             var limit = Stopwatch.StartNew();

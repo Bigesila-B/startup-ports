@@ -242,4 +242,40 @@
   <data name="WindowsStartupTaskLogonDisabledHint" xml:space="preserve"><value>此任务的登录触发器已经关闭，可在任务计划程序中修改触发器。</value></data>
   <data name="WindowsStartupPermissionDeniedLabel" xml:space="preserve"><value>Windows 权限不足</value></data>
   <data name="WindowsStartupPermissionDeniedHint" xml:space="preserve"><value>当前 Windows 权限不足以修改此项，请使用对应的系统管理入口。</value></data>
+  <data name="Tools" xml:space="preserve"><value>工具</value></data>
+  <data name="TimedShutdown" xml:space="preserve"><value>定时关机</value></data>
+  <data name="TimedShutdownDescription" xml:space="preserve"><value>安排一次性的关机、重启、睡眠或休眠。</value></data>
+  <data name="PowerSetTimer" xml:space="preserve"><value>设置定时任务</value></data>
+  <data name="PowerActionLabel" xml:space="preserve"><value>电源操作</value></data>
+  <data name="PowerActionShutdown" xml:space="preserve"><value>关机</value></data>
+  <data name="PowerActionRestart" xml:space="preserve"><value>重启</value></data>
+  <data name="PowerActionSleep" xml:space="preserve"><value>睡眠</value></data>
+  <data name="PowerActionHibernate" xml:space="preserve"><value>休眠</value></data>
+  <data name="PowerDate" xml:space="preserve"><value>本地日期</value></data>
+  <data name="PowerTime" xml:space="preserve"><value>时间（24 小时制）</value></data>
+  <data name="PowerPreset15" xml:space="preserve"><value>15 分钟后</value></data>
+  <data name="PowerPreset30" xml:space="preserve"><value>30 分钟后</value></data>
+  <data name="PowerPreset60" xml:space="preserve"><value>60 分钟后</value></data>
+  <data name="PowerSchedule" xml:space="preserve"><value>创建定时任务</value></data>
+  <data name="PowerCurrentTimer" xml:space="preserve"><value>当前任务</value></data>
+  <data name="PowerCancel" xml:space="preserve"><value>取消任务</value></data>
+  <data name="PowerContinuesAfterClose" xml:space="preserve"><value>关闭 StartupPorts 后，Windows 会继续计时。</value></data>
+  <data name="PowerMissedBehavior" xml:space="preserve"><value>到点时需保持当前账户登录且电脑处于唤醒状态。错过的任务会跳过。</value></data>
+  <data name="PowerFutureTime" xml:space="preserve"><value>请选择未来的日期和时间。</value></data>
+  <data name="PowerAlreadyScheduled" xml:space="preserve"><value>请先取消当前任务，再创建新任务。</value></data>
+  <data name="PowerCannotCancel" xml:space="preserve"><value>任务已发生变化或已开始执行，请查看当前状态。</value></data>
+  <data name="PowerTaskInvalid" xml:space="preserve"><value>定时任务位置已被无法识别的任务占用。</value></data>
+  <data name="PowerTaskBusy" xml:space="preserve"><value>定时任务正在处理，请稍后重试。</value></data>
+  <data name="PowerLoading" xml:space="preserve"><value>正在读取 Windows 定时任务和电源选项…</value></data>
+  <data name="PowerUnsupported" xml:space="preserve"><value>当前 Windows 配置不支持所选的电源操作。</value></data>
+  <data name="PowerTimeFormat" xml:space="preserve"><value>请选择有效且无时区歧义的本地日期，并输入类似 21:30 的时间。</value></data>
+  <data name="PowerSaveWork" xml:space="preserve"><value>请在任务执行前保存正在编辑的文件。</value></data>
+  <data name="PowerNoTimer" xml:space="preserve"><value>暂无定时任务</value></data>
+  <data name="PowerCountdown" xml:space="preserve"><value>剩余时间：{0}</value></data>
+  <data name="PowerRunning" xml:space="preserve"><value>Windows 正在处理请求。</value></data>
+  <data name="PowerCompleted" xml:space="preserve"><value>Windows 已接受请求。</value></data>
+  <data name="PowerFailed" xml:space="preserve"><value>Windows 未能执行请求，错误代码 {0}。</value></data>
+  <data name="PowerMissed" xml:space="preserve"><value>已错过执行时间。</value></data>
+  <data name="PowerDisabled" xml:space="preserve"><value>此任务已在 Windows 任务计划程序中停用。</value></data>
+  <data name="PowerConfirm" xml:space="preserve"><value>计划在 {1} 执行「{0}」？请在该时间前保存正在编辑的文件。</value></data>
 </root>

@@ -13,6 +13,8 @@ internal static class App
             UiText.LoadPreference();
             if (args is ["--run", var id] && Guid.TryParseExact(id, "N", out var entry))
                 return LaunchRunner.Run(entry);
+            if (args is ["--run-power", var timerId] && Guid.TryParseExact(timerId, "N", out var timer))
+                return new PowerTaskStore().GetDueAction(timer) is { } action ? WindowsPower.Run(action) : 2;
             if (args is ["--prepare-upgrade"] or ["--uninstall"])
                 return LaunchRunner.PrepareMaintenance(uninstall: args[0] == "--uninstall");
             if (args.Length > 0)
@@ -23,7 +25,8 @@ internal static class App
             UiText.ApplyResources(app);
             return app.Run(new MainWindow());
         }
-        catch (Exception ex) when (args.Length > 0 && ex is COMException or UnauthorizedAccessException or InvalidOperationException)
+        catch (Exception ex) when (args.Length > 0 && ex is COMException or UnauthorizedAccessException or
+            InvalidOperationException or System.IO.IOException or System.IO.InvalidDataException or System.Text.Json.JsonException)
         {
             return 1;
         }
